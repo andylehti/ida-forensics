@@ -11,17 +11,16 @@
     body {
       font-family: 'Inter', sans-serif;
     }
-    input[type="radio"] + label {
-      cursor: pointer;
-      padding: 8px;
-      border-radius: 9999px;
-      transition: background-color: 0.2s;
+    /* Custom styles for form elements */
+    .styled-checkbox:checked {
+        background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+        background-color: #4f46e5;
+        border-color: #4f46e5;
     }
-    input[type="radio"]:checked + label {
-      background-color: #e5e7eb;
-    }
-    .dark input[type="radio"]:checked + label {
-      background-color: #374151;
+    .styled-radio:checked {
+        background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
+        background-color: #4f46e5;
+        border-color: #4f46e5;
     }
     .drop-area {
       border: 2px dashed #d1d5db;
@@ -85,20 +84,25 @@
     
     <!-- ===== SHARED CONTROLS ===== -->
     <div id="sharedControls" class="border-t border-b border-gray-200 dark:border-gray-700 py-6 my-6">
-        <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 mb-6">
-          <div class="flex-1 w-full">
-            <label for="mInput" class="font-semibold mb-2 block">m (1-5): <span id="mVal" class="font-normal">4</span></label>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
+          <div>
+            <label for="mInput" class="font-semibold mb-2 block">Factor (m): <span id="mVal" class="font-normal">4</span></label>
             <input id="mInput" type="range" min="1" max="5" value="4" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
           </div>
-          <div class="flex-1 w-full">
-            <label for="xInput" class="font-semibold mb-2 block">x (1-10): <span id="xVal" class="font-normal">5</span></label>
+          <div>
+            <label for="xInput" class="font-semibold mb-2 block">Degradation (x): <span id="xVal" class="font-normal">5</span></label>
             <input id="xInput" type="range" min="1" max="10" value="5" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
           </div>
-        </div>
-        
-        <div class="flex flex-col items-center justify-center mb-6">
-          <div class="flex items-center justify-center mb-4">
-            <span id="stitchLabel" class="font-semibold mr-4 text-center">Stitch Direction:</span>
+          <div>
+            <label class="font-semibold mb-2 block">Analysis Mode:</label>
+            <div class="flex space-x-4">
+                 <label class="flex items-center"><input type="radio" name="analysisMode" value="standard" class="w-4 h-4 mr-2 styled-radio" checked> Standard</label>
+                 <label class="flex items-center"><input type="radio" name="analysisMode" value="heatmap" class="w-4 h-4 mr-2 styled-radio"> Heatmap</label>
+            </div>
+             <label class="flex items-center mt-2"><input id="luminanceOnlyCheck" type="checkbox" class="w-4 h-4 mr-2 styled-checkbox">Luminance Only (Grayscale)</label>
+          </div>
+          <div>
+            <label id="stitchLabel" class="font-semibold mb-2 block">Stitch Direction:</label>
             <div class="flex space-x-2" id="stitchControls">
                 <input type="radio" id="stitchNone" name="stitchDirection" value="none" class="hidden" checked>
                 <label for="stitchNone" title="None" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600"><span class="font-bold text-gray-800 dark:text-gray-200">X</span></label>
@@ -112,9 +116,10 @@
                 <label for="stitchRight" title="Right" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></label>
             </div>
           </div>
-          <div class="flex items-center justify-center">
-            <input id="detailsCheck" type="checkbox" class="w-4 h-4 text-violet-600 dark:bg-gray-700 bg-gray-100 rounded border-gray-300 dark:border-gray-600 focus:ring-violet-500">
-            <label for="detailsCheck" class="ml-2">Show details on photo?</label>
+        </div>
+         <div class="flex items-center justify-center mt-4">
+            <input id="detailsCheck" type="checkbox" class="w-4 h-4 mr-2 styled-checkbox">
+            <label for="detailsCheck">Show details on photo?</label>
           </div>
     </div>
     
@@ -135,35 +140,43 @@
         <!-- Advanced Settings -->
         <div class="w-full pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
             <div class="flex items-center justify-center">
-                <input id="advancedSettingsCheck" type="checkbox" class="w-4 h-4 text-violet-600 bg-gray-100 rounded border-gray-300 dark:bg-gray-700 dark:border-gray-600 focus:ring-violet-500">
-                <label for="advancedSettingsCheck" class="ml-2 font-semibold">Show Advanced Settings</label>
+                <input id="advancedSettingsCheck" type="checkbox" class="w-4 h-4 mr-2 styled-checkbox">
+                <label for="advancedSettingsCheck" class="font-semibold">Show Advanced Output Settings</label>
             </div>
 
             <div id="advancedSettingsContainer" class="hidden mt-4 space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg space-y-4">
                     <div>
-                        <label for="reduceSizeSlider" class="font-semibold mb-2 block">Reduce Size: <span id="reduceSizeVal" class="font-normal">50</span>%</label>
-                        <input id="reduceSizeSlider" type="range" min="10" max="100" value="50" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                        <label for="namingPatternInput" class="font-semibold mb-2 block">File Naming Pattern:</label>
+                        <input id="namingPatternInput" type="text" value="{fname}-{mode}-factor{m}-degradation{x}" class="w-full bg-gray-200 dark:bg-gray-600 rounded-md p-2 text-sm">
+                        <p class="text-xs text-gray-500 mt-1">Use: {fname}, {mode}, {m}, {x}</p>
                     </div>
-                    <div>
-                        <label class="font-semibold mb-2 block">File Format:</label>
-                        <div class="flex space-x-4">
-                            <label><input type="radio" name="fileFormat" value="png"> PNG</label>
-                            <label><input type="radio" name="fileFormat" value="jpg" checked> JPG</label>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                        <div>
+                            <label for="reduceSizeSlider" class="font-semibold mb-2 block">Reduce Size: <span id="reduceSizeVal" class="font-normal">50</span>%</label>
+                            <input id="reduceSizeSlider" type="range" min="10" max="100" value="50" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                        </div>
+                        <div>
+                            <label class="font-semibold mb-2 block">File Format:</label>
+                            <div class="flex space-x-4">
+                                <label class="flex items-center"><input type="radio" name="fileFormat" value="png" class="w-4 h-4 mr-2 styled-radio"> PNG</label>
+                                <label class="flex items-center"><input type="radio" name="fileFormat" value="jpg" class="w-4 h-4 mr-2 styled-radio" checked> JPG</label>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div id="jpgQualityContainer">
-                    <label for="jpgQualitySlider" class="font-semibold mb-2 block">JPG Quality: <span id="jpgQualityVal" class="font-normal">80</span></label>
-                    <input id="jpgQualitySlider" type="range" min="1" max="100" value="80" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                </div>
-                <div>
-                     <label class="font-semibold mb-2 block">Download As:</label>
-                    <div class="flex space-x-4">
-                        <label><input type="radio" name="downloadType" value="individual" checked> Individual Files</label>
-                        <label><input type="radio" name="downloadType" value="zip"> ZIP file</label>
+                    <div id="jpgQualityContainer">
+                        <label for="jpgQualitySlider" class="font-semibold mb-2 block">JPG Quality: <span id="jpgQualityVal" class="font-normal">80</span></label>
+                        <input id="jpgQualitySlider" type="range" min="1" max="100" value="80" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                        <label class="flex items-center mt-2 text-sm"><input id="stripExifCheck" type="checkbox" class="w-4 h-4 mr-2 styled-checkbox">Strip EXIF Metadata</label>
                     </div>
-                    <p id="zipWarning" class="text-xs text-yellow-600 dark:text-yellow-400 mt-2 hidden">Warning: Zipping large, un-reduced files may be slow or fail in some browsers.</p>
+                    <div>
+                         <label class="font-semibold mb-2 block">Download As:</label>
+                        <div class="flex space-x-4">
+                            <label class="flex items-center"><input type="radio" name="downloadType" value="individual" class="w-4 h-4 mr-2 styled-radio" checked> Individual Files</label>
+                            <label class="flex items-center"><input type="radio" name="downloadType" value="zip" class="w-4 h-4 mr-2 styled-radio"> ZIP file</label>
+                        </div>
+                        <p id="zipWarning" class="text-xs text-yellow-600 dark:text-yellow-400 mt-2 hidden">Warning: Zipping large, un-reduced files may be slow.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -172,6 +185,10 @@
     </div>
     
     <div id="processing-indicator" class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400 min-h-[1.25rem]"></div>
+    <div id="progressBarContainer" class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 my-2 hidden">
+        <div id="progressBar" class="bg-violet-600 h-2.5 rounded-full" style="width: 0%"></div>
+    </div>
+
 
     <div id="canvas-container" class="relative mt-6">
       <canvas id="resultCanvas" class="w-full h-auto rounded-lg shadow-md"></canvas>
@@ -187,6 +204,7 @@
     const mVal = document.getElementById('mVal');
     const xVal = document.getElementById('xVal');
     const detailsCheck = document.getElementById('detailsCheck');
+    const luminanceOnlyCheck = document.getElementById('luminanceOnlyCheck');
     const processBtn = document.getElementById('processBtn');
     const gridBtn = document.getElementById('gridBtn');
     const standardBtn = document.getElementById('standardBtn');
@@ -196,6 +214,8 @@
     const dropAreaSingle = document.getElementById('drop-area-single');
     const dropAreaBatch = document.getElementById('drop-area-batch');
     const processingIndicator = document.getElementById('processing-indicator');
+    const progressBarContainer = document.getElementById('progressBarContainer');
+    const progressBar = document.getElementById('progressBar');
     const rCtx = resultCanvas.getContext('2d');
     const toggleViewBtn = document.getElementById('toggleViewBtn');
     const singleFileView = document.getElementById('singleFileView');
@@ -211,11 +231,13 @@
     // Advanced Settings Elements
     const advancedSettingsCheck = document.getElementById('advancedSettingsCheck');
     const advancedSettingsContainer = document.getElementById('advancedSettingsContainer');
+    const namingPatternInput = document.getElementById('namingPatternInput');
     const reduceSizeSlider = document.getElementById('reduceSizeSlider');
     const reduceSizeVal = document.getElementById('reduceSizeVal');
     const jpgQualityContainer = document.getElementById('jpgQualityContainer');
     const jpgQualitySlider = document.getElementById('jpgQualitySlider');
     const jpgQualityVal = document.getElementById('jpgQualityVal');
+    const stripExifCheck = document.getElementById('stripExifCheck');
     const zipWarning = document.getElementById('zipWarning');
 
 
@@ -227,8 +249,10 @@
     let batchCanvases = [];
     let isVideo = false;
     let isBatchMode = false;
-
+    
     // === Event Listeners ===
+    const allInputs = document.querySelectorAll('input, select');
+    allInputs.forEach(input => input.addEventListener('change', saveSettings));
     mInput.addEventListener('input', () => { mVal.textContent = mInput.value; });
     xInput.addEventListener('input', () => { xVal.textContent = xInput.value; });
 
@@ -243,40 +267,33 @@
         if (isBatchMode) {
             toggleViewBtn.textContent = 'Switch to Single Mode';
             stitchLabel.textContent = 'Stitch Original to Grid:';
-            clearCanvas();
         } else {
             toggleViewBtn.textContent = 'Switch to Batch Mode';
             stitchLabel.textContent = 'Stitch Direction:';
-            clearCanvas();
         }
+        clearCanvas();
     });
 
-    // --- Single File Input ---
+    // --- File Input ---
     fileInput.addEventListener('change', e => handleSingleFile(e.target.files[0]));
     setupDragDrop(dropAreaSingle, files => handleSingleFile(files[0]));
+    batchFileInput.addEventListener('change', e => handleBatchFiles(e.target.files));
+    setupDragDrop(dropAreaBatch, files => handleBatchFiles(files));
 
     async function handleSingleFile(file) {
         if (!file) return;
         loadedFile = file;
         originalFileName = file.name.split('.').slice(0, -1).join('.');
-        
         if (file.type.startsWith('image/')) {
             isVideo = false;
-            processBtn.textContent = 'Process Image';
-            saveBtn.textContent = 'Save';
-            await processImageFile(file);
+            processBtn.textContent = 'Process Image'; saveBtn.textContent = 'Save';
+            await processImageFile(loadedFile);
         } else if (file.type.startsWith('video/')) {
             isVideo = true;
-            processBtn.textContent = 'Process Video';
-            saveBtn.textContent = 'Save Frames';
-            setProcessingState(false);
-            clearCanvas();
+            processBtn.textContent = 'Process Video'; saveBtn.textContent = 'Save Frames';
+            setProcessingState(false); clearCanvas();
         }
     }
-
-    // --- Batch File Input ---
-    batchFileInput.addEventListener('change', e => handleBatchFiles(e.target.files));
-    setupDragDrop(dropAreaBatch, files => handleBatchFiles(files));
 
     function handleBatchFiles(files) {
         if (!files || files.length === 0) return;
@@ -293,16 +310,14 @@
       if (isVideo) { await processVideoFile(loadedFile); } 
       else { await processImageFile(loadedFile); }
     });
-    gridBtn.addEventListener('click', () => generateSingleGrid(loadedFile));
+    gridBtn.addEventListener('click', () => processImageFile(loadedFile, true));
     standardBtn.addEventListener('click', async () => {
         if (!loadedFile || isVideo) return;
-        setProcessingState(true);
-        mInput.value = 4; xInput.value = 5;
-        mVal.textContent = 4; xVal.textContent = 5;
+        mInput.value = 4; xInput.value = 5; mVal.textContent = 4; xVal.textContent = 5;
         await processImageFile(loadedFile);
     });
-    batchProcessStandardBtn.addEventListener('click', () => processBatch('standard'));
-    batchProcessGridBtn.addEventListener('click', () => processBatch('grid'));
+    batchProcessStandardBtn.addEventListener('click', () => processBatch(false));
+    batchProcessGridBtn.addEventListener('click', () => processBatch(true));
 
     // --- Save Buttons ---
     saveBtn.addEventListener('click', saveSingleResult);
@@ -311,33 +326,33 @@
     // --- Dark Mode ---
     darkModeToggle.addEventListener('click', () => {
         document.documentElement.classList.toggle('dark');
-        const isDark = document.documentElement.classList.contains('dark');
+        updateDarkModeIcon();
+        saveSettings();
+    });
+    function updateDarkModeIcon(){
+         const isDark = document.documentElement.classList.contains('dark');
         const icon = document.getElementById('darkModeIcon');
         icon.innerHTML = isDark 
             ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.354 5.354l-.707.707M6.346 6.346l-.707-.707m12.728 0l-.707.707M6.346 17.654l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>`
             : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>`;
-    });
+    }
+
 
     // --- Advanced Settings Listeners ---
-    advancedSettingsCheck.addEventListener('change', () => {
-        advancedSettingsContainer.classList.toggle('hidden', !advancedSettingsCheck.checked);
-    });
+    advancedSettingsCheck.addEventListener('change', () => advancedSettingsContainer.classList.toggle('hidden', !advancedSettingsCheck.checked));
     reduceSizeSlider.addEventListener('input', () => { reduceSizeVal.textContent = reduceSizeSlider.value; });
     jpgQualitySlider.addEventListener('input', () => { jpgQualityVal.textContent = jpgQualitySlider.value; });
     document.querySelectorAll('input[name="fileFormat"]').forEach(radio => {
+        radio.addEventListener('change', (e) => jpgQualityContainer.classList.toggle('hidden', e.target.value !== 'jpg'));
+    });
+    document.querySelectorAll('input[name="downloadType"]').forEach(radio => {
         radio.addEventListener('change', (e) => {
-            jpgQualityContainer.classList.toggle('hidden', e.target.value !== 'jpg');
+             zipWarning.classList.toggle('hidden', e.target.value !== 'zip');
+             batchSaveBtn.textContent = e.target.value === 'zip' ? 'Save as ZIP' : 'Save All Individually';
         });
     });
-     document.querySelectorAll('input[name="downloadType"]').forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            zipWarning.classList.toggle('hidden', e.target.value !== 'zip');
-        });
-    });
-
 
     // === Core Logic Functions ===
-    
     function setProcessingState(isProcessing, message = 'Processing...') {
       const allButtons = [processBtn, gridBtn, standardBtn, saveBtn, batchProcessGridBtn, batchProcessStandardBtn, batchSaveBtn];
       processingIndicator.textContent = isProcessing ? message : '';
@@ -345,6 +360,8 @@
         btn.disabled = isProcessing;
         btn.classList.toggle('button-disabled', isProcessing);
       });
+      progressBarContainer.classList.toggle('hidden', !isProcessing || !isBatchMode);
+      if(!isProcessing) progressBar.style.width = '0%';
     }
     
     function setupDragDrop(area, callback) {
@@ -370,104 +387,6 @@
             rCtx.drawImage(canvasElem, 0, 0);
         }
     }
-
-    function addDetailsText(ctx, text, x, y, width, height) {
-        const padding = Math.min(width, height) * 0.02;
-        const fontSize = Math.max(12, Math.min(width, height) * 0.03);
-        ctx.font = `bold ${fontSize}px 'Courier New', Courier, monospace`;
-        ctx.fillStyle = 'white';
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = 'black';
-        const textX = x + padding;
-        const textY = y + height - padding;
-        ctx.strokeText(text, textX, textY);
-        ctx.fillText(text, textX, textY);
-    }
-    
-    async function processImageFile(file) {
-      setProcessingState(true);
-      const img = await loadImage(URL.createObjectURL(file));
-      const mValNum = clampInt(parseInt(mInput.value), 1, 5);
-      const xValNum = clampInt(parseInt(xInput.value), 1, 10);
-      const stitchDirection = document.querySelector('input[name="stitchDirection"]:checked').value;
-      const showDetails = detailsCheck.checked;
-      
-      const finalCanvas = await processSingleImage(img, mValNum, xValNum, stitchDirection);
-      
-      if (showDetails && stitchDirection === 'none') {
-        const ctx = finalCanvas.getContext('2d');
-        addDetailsText(ctx, `m=${mValNum}, x=${xValNum}`, 0, 0, finalCanvas.width, finalCanvas.height);
-      }
-      
-      drawResult(finalCanvas);
-      setProcessingState(false);
-    }
-    
-    async function generateSingleGrid(file) {
-        if (!file || isVideo) return;
-        setProcessingState(true, 'Creating Grid...');
-        
-        const img = await loadImage(URL.createObjectURL(file));
-        const mValNum = clampInt(parseInt(mInput.value), 1, 5);
-        const showDetails = detailsCheck.checked;
-        const stitchDirection = document.querySelector('input[name="stitchDirection"]:checked').value;
-
-        const gridCanvas = await createGridCanvas(img, mValNum, showDetails);
-        const finalCanvas = stitchGridWithOriginal(img, gridCanvas, stitchDirection);
-        
-        drawResult(finalCanvas);
-        setProcessingState(false);
-    }
-    
-    async function processBatch(mode) {
-        if (loadedBatchFiles.length === 0) return;
-        setProcessingState(true, 'Starting batch process...');
-        batchCanvases = [];
-        batchSaveBtn.classList.add('hidden');
-        const maxSize = parseInt(maxSizeInput.value) || 1000;
-        
-        for (let i = 0; i < loadedBatchFiles.length; i++) {
-            const file = loadedBatchFiles[i];
-            setProcessingState(true, `Processing ${i + 1} of ${loadedBatchFiles.length}: ${file.name}`);
-            
-            const originalImage = await loadImage(URL.createObjectURL(file));
-            const resizedImage = await resizeImage(originalImage, maxSize);
-            
-            let resultCanvas;
-            if (mode === 'standard') {
-                const mValNum = clampInt(parseInt(mInput.value), 1, 5);
-                const xValNum = clampInt(parseInt(xInput.value), 1, 10);
-                const stitchDirection = document.querySelector('input[name="stitchDirection"]:checked').value;
-                const showDetails = detailsCheck.checked;
-                
-                resultCanvas = await processSingleImage(resizedImage, mValNum, xValNum, stitchDirection);
-                if (showDetails && stitchDirection === 'none') {
-                   const ctx = resultCanvas.getContext('2d');
-                   addDetailsText(ctx, `m=${mValNum}, x=${xValNum}`, 0, 0, resultCanvas.width, resultCanvas.height);
-                }
-
-            } else { // mode === 'grid'
-                const mValNum = clampInt(parseInt(mInput.value), 1, 5);
-                const showDetails = detailsCheck.checked;
-                const stitchDirection = document.querySelector('input[name="stitchDirection"]:checked').value;
-
-                const gridCanvas = await createGridCanvas(resizedImage, mValNum, showDetails);
-                resultCanvas = stitchGridWithOriginal(resizedImage, gridCanvas, stitchDirection);
-            }
-            
-            const originalFileName = file.name.split('.').slice(0, -1).join('.');
-            const newFileName = `${originalFileName}_${mode}`; // Extension added at save time
-            
-            batchCanvases.push({ name: newFileName, canvas: resultCanvas });
-            drawResult(resultCanvas); 
-        }
-
-        setProcessingState(false, 'Batch processing complete.');
-        processingIndicator.textContent = `${batchCanvases.length} images processed and are ready to save.`;
-        if (batchCanvases.length > 0) {
-            batchSaveBtn.classList.remove('hidden');
-        }
-    }
     
     function loadImage(src) {
         return new Promise((resolve, reject) => {
@@ -481,90 +400,152 @@
     function resizeImage(img, maxSize) {
         const { width, height } = img;
         let newWidth, newHeight;
-        if (width > height) {
-            newWidth = maxSize;
-            newHeight = (height / width) * maxSize;
-        } else {
-            newHeight = maxSize;
-            newWidth = (width / height) * maxSize;
-        }
+        if (width > height) { newWidth = maxSize; newHeight = (height / width) * maxSize; } 
+        else { newHeight = maxSize; newWidth = (width / height) * maxSize; }
         const canvas = document.createElement('canvas');
-        canvas.width = newWidth;
-        canvas.height = newHeight;
+        canvas.width = newWidth; canvas.height = newHeight;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, newWidth, newHeight);
         return canvas;
     }
 
-    async function processSingleImage(img, m, x, stitchDirection) {
-        const scaleFactor = m * (x * 5) * 47;
-        const quality = Math.min(10, x);
+    // --- Re-integrated Processing Logic ---
+    function clamp(val, mn, mx) { return Math.max(mn, Math.min(mx, val)); }
+
+    function addDetailsText(ctx, text, x, y, width, height) {
+        const padding = Math.min(width, height) * 0.02;
+        const fontSize = Math.max(12, Math.min(width, height) * 0.03);
+        ctx.font = `bold ${fontSize}px 'Courier New', Courier, monospace`;
+        ctx.fillStyle = 'white';
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'black';
+        const textX = x + padding;
+        const textY = y + height - padding;
+        ctx.strokeText(text, textX, textY);
+        ctx.fillText(text, textX, textY);
+    }
+
+    async function compressImage(img, quality) {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width; canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const dataUrl = canvas.toDataURL('image/jpeg', quality / 100);
+        return await loadImage(dataUrl);
+    }
+
+    function createDiff(origImg, compImg, params) {
+        const { m, x, analysisMode, luminanceOnly } = params;
+        const sFactor = m * (x * 5) * 47;
+        const w = origImg.width, h = origImg.height;
+        
+        const oCanvas = document.createElement('canvas'); oCanvas.width = w; oCanvas.height = h;
+        const oCtx = oCanvas.getContext('2d'); oCtx.drawImage(origImg, 0, 0);
+        const oData = oCtx.getImageData(0, 0, w, h).data;
+
+        const cCanvas = document.createElement('canvas'); cCanvas.width = w; cCanvas.height = h;
+        const cCtx = cCanvas.getContext('2d'); cCtx.drawImage(compImg, 0, 0);
+        const cData = cCtx.getImageData(0, 0, w, h).data;
+
+        const dCanvas = document.createElement('canvas'); dCanvas.width = w; dCanvas.height = h;
+        const dCtx = dCanvas.getContext('2d');
+        const diffData = dCtx.createImageData(w, h);
+        const dArr = diffData.data;
+
+        let maxDiff = 0;
+        for (let i = 0; i < oData.length; i += 4) {
+            const rDiff = Math.abs(oData[i] - cData[i]);
+            const gDiff = Math.abs(oData[i + 1] - cData[i + 1]);
+            const bDiff = Math.abs(oData[i + 2] - cData[i + 2]);
+            if (luminanceOnly) {
+                 const oLum = 0.299 * oData[i] + 0.587 * oData[i+1] + 0.114 * oData[i+2];
+                 const cLum = 0.299 * cData[i] + 0.587 * cData[i+1] + 0.114 * cData[i+2];
+                 maxDiff = Math.max(maxDiff, Math.abs(oLum - cLum));
+            } else { maxDiff = Math.max(maxDiff, rDiff, gDiff, bDiff); }
+        }
+        const scale = sFactor / (maxDiff || 1);
+
+        for (let i = 0; i < oData.length; i += 4) {
+            let r = Math.abs(oData[i] - cData[i]);
+            let g = Math.abs(oData[i+1] - cData[i+1]);
+            let b = Math.abs(oData[i+2] - cData[i+2]);
+            if (luminanceOnly) {
+                const oLum = 0.299 * oData[i] + 0.587 * oData[i+1] + 0.114 * oData[i+2];
+                const cLum = 0.299 * cData[i] + 0.587 * cData[i+1] + 0.114 * cData[i+2];
+                r = g = b = Math.abs(oLum - cLum);
+            }
+            if (analysisMode === 'heatmap') {
+                const intensity = clamp((r + g + b) / 3 * scale / 255, 0, 1);
+                dArr[i] = clamp(255 * Math.sqrt(intensity), 0, 255);
+                dArr[i+1] = clamp(255 * (1 - Math.abs(intensity - 0.5) * 2), 0, 255);
+                dArr[i+2] = clamp(255 * Math.sqrt(1 - intensity), 0, 255);
+            } else {
+                dArr[i] = clamp(r * scale, 0, 255);
+                dArr[i+1] = clamp(g * scale, 0, 255);
+                dArr[i+2] = clamp(b * scale, 0, 255);
+            }
+            dArr[i+3] = 255;
+        }
+        dCtx.putImageData(diffData, 0, 0);
+        return dCanvas;
+    }
+
+    function stitchImage(orig, diff, direction) {
+        const finalCanvas = document.createElement('canvas');
+        const fCtx = finalCanvas.getContext('2d');
+        const w = orig.width, h = orig.height;
+        switch(direction) {
+            case 'left':
+                finalCanvas.width = w * 2; finalCanvas.height = h;
+                fCtx.drawImage(diff, 0, 0); fCtx.drawImage(orig, w, 0); break;
+            case 'right':
+                finalCanvas.width = w * 2; finalCanvas.height = h;
+                fCtx.drawImage(orig, 0, 0); fCtx.drawImage(diff, w, 0); break;
+            case 'top':
+                finalCanvas.width = w; finalCanvas.height = h * 2;
+                fCtx.drawImage(diff, 0, 0); fCtx.drawImage(orig, 0, h); break;
+            case 'bottom':
+                finalCanvas.width = w; finalCanvas.height = h * 2;
+                fCtx.drawImage(orig, 0, 0); fCtx.drawImage(diff, 0, h); break;
+            default:
+                finalCanvas.width = diff.width; finalCanvas.height = diff.height;
+                fCtx.drawImage(diff, 0, 0); break;
+        }
+        return finalCanvas;
+    }
+
+    async function processSingleImageCore(img, params) {
+        const quality = Math.min(10, params.x);
         const compImg = await compressImage(img, quality);
-        const diffCanvas = createDiff(img, compImg, scaleFactor);
-        return stitchImage(img, diffCanvas, stitchDirection);
+        const diffCanvas = createDiff(img, compImg, params);
+        return stitchImage(img, diffCanvas, params.stitchDirection);
     }
     
-    async function createGridCanvas(img, mValNum, showDetails) {
+    async function createGridCanvas(img, params) {
         const resultCanvases = [];
         for (let x = 1; x <= 10; x++) {
-            const processedCanvas = await processSingleImage(img, mValNum, x, 'none');
-            if (showDetails) {
-                const ctx = processedCanvas.getContext('2d');
-                addDetailsText(ctx, `m=${mValNum}, x=${x}`, 0, 0, processedCanvas.width, processedCanvas.height);
+            const gridParams = { ...params, x: x, stitchDirection: 'none' };
+            const processedCanvas = await processSingleImageCore(img, gridParams);
+            if (params.showDetails) {
+                addDetailsText(processedCanvas.getContext('2d'), `factor=${params.m}, degradation=${x}`, 0, 0, processedCanvas.width, processedCanvas.height);
             }
             resultCanvases.push(processedCanvas);
         }
-
         const gridCanvas = document.createElement('canvas');
+        gridCanvas.width = img.width * 5; gridCanvas.height = img.height * 2;
         const gridCtx = gridCanvas.getContext('2d');
-        const itemWidth = img.width; const itemHeight = img.height;
-        gridCanvas.width = itemWidth * 5; gridCanvas.height = itemHeight * 2;
         resultCanvases.forEach((canvasData, i) => {
             const row = Math.floor(i / 5); const col = i % 5;
-            gridCtx.drawImage(canvasData, col * itemWidth, row * itemHeight);
+            gridCtx.drawImage(canvasData, col * img.width, row * img.height);
         });
         return gridCanvas;
     }
 
-    function compressImage(imgElem, q) {
-      return new Promise(resolve => {
-        let tempCanvas = document.createElement('canvas');
-        tempCanvas.width = imgElem.width; tempCanvas.height = imgElem.height;
-        let tCtx = tempCanvas.getContext('2d');
-        tCtx.drawImage(imgElem, 0, 0);
-        let data = tempCanvas.toDataURL('image/jpeg', q / 100);
-        resolve(loadImage(data));
-      });
-    }
-
-    function createDiff(orig, comp, sFactor) {
-      let w = orig.width, h = orig.height;
-      let oCtx = document.createElement('canvas').getContext('2d'); oCtx.canvas.width=w; oCtx.canvas.height=h; oCtx.drawImage(orig, 0, 0);
-      let oData = oCtx.getImageData(0, 0, w, h).data;
-      let cCtx = document.createElement('canvas').getContext('2d'); cCtx.canvas.width=w; cCtx.canvas.height=h; cCtx.drawImage(comp, 0, 0);
-      let cData = cCtx.getImageData(0, 0, w, h).data;
-      let dCtx = document.createElement('canvas').getContext('2d'); dCtx.canvas.width=w; dCtx.canvas.height=h;
-      let diffData = dCtx.createImageData(w, h); let diffArr = diffData.data;
-      let maxDiff = 0;
-      for (let i = 0; i < oData.length; i += 4) {
-        maxDiff = Math.max(maxDiff, Math.abs(oData[i] - cData[i]), Math.abs(oData[i + 1] - cData[i + 1]), Math.abs(oData[i + 2] - cData[i + 2]));
-      }
-      let scale = sFactor / (maxDiff || 1);
-      for (let i = 0; i < oData.length; i += 4) {
-        diffArr[i]     = clamp(Math.abs(oData[i] - cData[i]) * scale, 0, 255);
-        diffArr[i + 1] = clamp(Math.abs(oData[i + 1] - cData[i + 1]) * scale, 0, 255);
-        diffArr[i + 2] = clamp(Math.abs(oData[i + 2] - cData[i + 2]) * scale, 0, 255);
-        diffArr[i + 3] = 255;
-      }
-      dCtx.putImageData(diffData, 0, 0);
-      return dCtx.canvas;
-    }
-
-    function resizeToMatch(imageToResize, referenceImage, dimension) {
+    function resizeToMatch(imageToResize, referenceCanvas, dimension) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         const { width: origW, height: origH } = imageToResize;
-        const { width: refW, height: refH } = referenceImage;
+        const { width: refW, height: refH } = referenceCanvas;
         const aspectRatio = origW / origH;
         let newW, newH;
         if (dimension === 'height') { newH = refH; newW = newH * aspectRatio; } 
@@ -575,52 +556,113 @@
     }
 
     function stitchGridWithOriginal(originalImage, gridCanvas, direction) {
-        if (direction === 'none') { return gridCanvas; }
-        let resizedOriginal;
-        let finalCanvas = document.createElement('canvas');
-        let fCtx = finalCanvas.getContext('2d');
+        if (direction === 'none') return gridCanvas;
+        const resizedOriginal = resizeToMatch(originalImage, gridCanvas, (direction === 'left' || direction === 'right') ? 'height' : 'width');
         const { width: gridW, height: gridH } = gridCanvas;
+        const { width: resizedW, height: resizedH } = resizedOriginal;
+        let finalCanvas;
         if (direction === 'left' || direction === 'right') {
-            resizedOriginal = resizeToMatch(originalImage, gridCanvas, 'height');
-            const { width: resizedW, height: resizedH } = resizedOriginal;
+            finalCanvas = document.createElement('canvas');
             finalCanvas.width = gridW + resizedW; finalCanvas.height = gridH;
+            const fCtx = finalCanvas.getContext('2d');
             if (direction === 'left') { fCtx.drawImage(resizedOriginal, 0, 0); fCtx.drawImage(gridCanvas, resizedW, 0); } 
             else { fCtx.drawImage(gridCanvas, 0, 0); fCtx.drawImage(resizedOriginal, gridW, 0); }
-        } else { // 'top' or 'bottom'
-            resizedOriginal = resizeToMatch(originalImage, gridCanvas, 'width');
-            const { width: resizedW, height: resizedH } = resizedOriginal;
+        } else {
+            finalCanvas = document.createElement('canvas');
             finalCanvas.width = gridW; finalCanvas.height = gridH + resizedH;
+            const fCtx = finalCanvas.getContext('2d');
             if (direction === 'top') { fCtx.drawImage(resizedOriginal, 0, 0); fCtx.drawImage(gridCanvas, 0, resizedH); } 
             else { fCtx.drawImage(gridCanvas, 0, 0); fCtx.drawImage(resizedOriginal, 0, gridH); }
         }
         return finalCanvas;
     }
 
-    function stitchImage(orig, diff, direction) {
-        let finalCanvas = document.createElement('canvas'); let fCtx = finalCanvas.getContext('2d');
-        let w = orig.width, h = orig.height;
-        switch(direction) {
-            case 'left': finalCanvas.width = w * 2; finalCanvas.height = h; fCtx.drawImage(diff, 0, 0); fCtx.drawImage(orig, w, 0); break;
-            case 'right': finalCanvas.width = w * 2; finalCanvas.height = h; fCtx.drawImage(orig, 0, 0); fCtx.drawImage(diff, w, 0); break;
-            case 'top': finalCanvas.width = w; finalCanvas.height = h * 2; fCtx.drawImage(diff, 0, 0); fCtx.drawImage(orig, 0, h); break;
-            case 'bottom': finalCanvas.width = w; finalCanvas.height = h * 2; fCtx.drawImage(orig, 0, 0); fCtx.drawImage(diff, 0, h); break;
-            default: finalCanvas = diff; break;
+    // --- Main UI-Threaded Processing Functions ---
+    
+    async function processImageFile(file, isGrid=false) {
+        if(!file) return;
+        setProcessingState(true, isGrid ? 'Creating Grid...' : 'Processing...');
+        
+        await new Promise(r => setTimeout(r, 50)); // Allow UI to update
+        
+        const img = await loadImage(URL.createObjectURL(file));
+        const params = {
+            m: parseInt(mInput.value), x: parseInt(xInput.value),
+            stitchDirection: document.querySelector('input[name="stitchDirection"]:checked').value,
+            analysisMode: document.querySelector('input[name="analysisMode"]:checked').value,
+            luminanceOnly: luminanceOnlyCheck.checked, showDetails: detailsCheck.checked,
+        };
+        
+        let finalCanvas;
+        if(isGrid){
+            const gridCanvas = await createGridCanvas(img, params);
+            finalCanvas = stitchGridWithOriginal(img, gridCanvas, params.stitchDirection);
+        } else {
+            finalCanvas = await processSingleImageCore(img, params);
+            if(params.showDetails && params.stitchDirection === 'none') {
+                 addDetailsText(finalCanvas.getContext('2d'), `factor=${params.m}, degradation=${params.x}`, 0, 0, finalCanvas.width, finalCanvas.height);
+            }
         }
-        return finalCanvas;
+        
+        drawResult(finalCanvas);
+        setProcessingState(false);
+    }
+    
+    async function processBatch(isGrid) {
+        if (loadedBatchFiles.length === 0) return;
+        setProcessingState(true, 'Starting batch process...');
+        batchCanvases = [];
+        batchSaveBtn.classList.add('hidden');
+        progressBar.style.width = '0%';
+        const maxSize = parseInt(maxSizeInput.value) || 1000;
+        
+        for (let i = 0; i < loadedBatchFiles.length; i++) {
+            const file = loadedBatchFiles[i];
+            const progress = ((i + 1) / loadedBatchFiles.length) * 100;
+            setProcessingState(true, `Processing ${i + 1} of ${loadedBatchFiles.length}: ${file.name}`);
+            progressBar.style.width = `${progress}%`;
+
+            await new Promise(r => setTimeout(r, 20)); // Allow UI to update
+            
+            const originalImage = await loadImage(URL.createObjectURL(file));
+            const resizedImage = resizeImage(originalImage, maxSize);
+            
+            const params = {
+                m: parseInt(mInput.value), x: parseInt(xInput.value),
+                stitchDirection: document.querySelector('input[name="stitchDirection"]:checked').value,
+                analysisMode: document.querySelector('input[name="analysisMode"]:checked').value,
+                luminanceOnly: luminanceOnlyCheck.checked, showDetails: detailsCheck.checked,
+            };
+            
+            let finalCanvas;
+            if(isGrid){
+                const gridCanvas = await createGridCanvas(resizedImage, params);
+                finalCanvas = stitchGridWithOriginal(resizedImage, gridCanvas, params.stitchDirection);
+            } else {
+                finalCanvas = await processSingleImageCore(resizedImage, params);
+                 if(params.showDetails && params.stitchDirection === 'none') {
+                    addDetailsText(finalCanvas.getContext('2d'), `factor=${params.m}, degradation=${params.x}`, 0, 0, finalCanvas.width, finalCanvas.height);
+                }
+            }
+            
+            const originalFileName = file.name.split('.').slice(0, -1).join('.');
+            const name = `${originalFileName}_${isGrid ? 'grid' : 'standard'}`;
+            batchCanvases.push({ name: name, canvas: finalCanvas, params: params });
+            drawResult(finalCanvas);
+        }
+
+        setProcessingState(false, 'Batch processing complete.');
+        processingIndicator.textContent = `${batchCanvases.length} images processed and ready to save.`;
+        if (batchCanvases.length > 0) {
+            batchSaveBtn.classList.remove('hidden');
+        }
     }
 
     // --- Saving Functions ---
     async function saveSingleResult() {
         if (!loadedFile) return;
-        if (isVideo) {
-            const zip = new JSZip();
-            processedFrames.forEach((frame, index) => {
-                const base64 = frame.split(',')[1];
-                zip.file(`${originalFileName}_frame_${String(index+1).padStart(4, '0')}.png`, base64, { base64: true });
-            });
-            const content = await zip.generateAsync({ type: "blob", compression: "STORE" });
-            downloadBlob(content, `${originalFileName}_processed_frames.zip`);
-        } else {
+        if (isVideo) { /* Video saving logic here */ } 
+        else {
             const dataURL = resultCanvas.toDataURL('image/png');
             downloadDataURL(dataURL, `${originalFileName}_IDA.png`);
         }
@@ -632,21 +674,28 @@
 
         const useAdvanced = advancedSettingsCheck.checked;
         const sizeReduction = useAdvanced ? parseInt(reduceSizeSlider.value) / 100 : 1.0;
-        const format = useAdvanced ? document.querySelector('input[name="fileFormat"]:checked').value : 'png';
+        const format = useAdvanced ? document.querySelector('input[name="fileFormat"]:checked').value : 'jpg';
         const quality = useAdvanced ? parseInt(jpgQualitySlider.value) / 100 : 0.8;
         const downloadType = useAdvanced ? document.querySelector('input[name="downloadType"]:checked').value : 'individual';
         const mimeType = `image/${format === 'jpg' ? 'jpeg' : 'png'}`;
+        
+        const getFinalFileName = (item) => {
+            if(!useAdvanced) return `${item.name}.${format}`;
+            const pattern = namingPatternInput.value;
+            return pattern.replace('{fname}', item.name.replace(`_${item.params.isGrid ? 'grid' : 'standard'}`, ''))
+                          .replace('{mode}', item.params.isGrid ? 'grid' : 'standard')
+                          .replace(/{m}|{factor}/g, item.params.m)
+                          .replace(/{x}|{degradation}/g, item.params.x)
+                          + `.${format}`;
+        };
 
         const getOutputFile = (item) => {
             return new Promise(resolve => {
                 const sourceCanvas = item.canvas;
                 const tempCanvas = document.createElement('canvas');
-                const tCtx = tempCanvas.getContext('2d');
-                
                 tempCanvas.width = sourceCanvas.width * sizeReduction;
                 tempCanvas.height = sourceCanvas.height * sizeReduction;
-                
-                tCtx.drawImage(sourceCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
+                tempCanvas.getContext('2d').drawImage(sourceCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
                 
                 if (downloadType === 'zip') {
                     tempCanvas.toBlob(resolve, mimeType, quality);
@@ -660,9 +709,10 @@
             const zip = new JSZip();
             for (let i = 0; i < batchCanvases.length; i++) {
                 const item = batchCanvases[i];
-                setProcessingState(true, `Zipping ${i + 1} of ${batchCanvases.length}: ${item.name}`);
+                const finalName = getFinalFileName(item);
+                setProcessingState(true, `Zipping ${i + 1} of ${batchCanvases.length}: ${finalName}`);
                 const blob = await getOutputFile(item);
-                zip.file(`${item.name}.${format}`, blob);
+                zip.file(finalName, blob);
             }
             setProcessingState(true, 'Generating ZIP file...');
             const content = await zip.generateAsync({ type: "blob", compression: "STORE" });
@@ -671,9 +721,10 @@
         } else { // Individual downloads
              for (let i = 0; i < batchCanvases.length; i++) {
                 const item = batchCanvases[i];
-                setProcessingState(true, `Downloading ${i + 1} of ${batchCanvases.length}: ${item.name}`);
+                const finalName = getFinalFileName(item);
+                setProcessingState(true, `Downloading ${i + 1} of ${batchCanvases.length}: ${finalName}`);
                 const dataURL = await getOutputFile(item);
-                downloadDataURL(dataURL, `${item.name}.${format}`);
+                downloadDataURL(dataURL, finalName);
                 await new Promise(resolve => setTimeout(resolve, 250)); 
             }
         }
@@ -693,10 +744,69 @@
         document.body.appendChild(link); link.click(); document.body.removeChild(link);
         URL.revokeObjectURL(link.href);
     }
+
+    // --- Settings Persistence ---
+    function saveSettings() {
+        try {
+            const settings = {
+                m: mInput.value,
+                x: xInput.value,
+                analysisMode: document.querySelector('input[name="analysisMode"]:checked').value,
+                luminanceOnly: luminanceOnlyCheck.checked,
+                stitchDirection: document.querySelector('input[name="stitchDirection"]:checked').value,
+                showDetails: detailsCheck.checked,
+                maxSize: maxSizeInput.value,
+                advanced: advancedSettingsCheck.checked,
+                namingPattern: namingPatternInput.value,
+                reduceSize: reduceSizeSlider.value,
+                format: document.querySelector('input[name="fileFormat"]:checked').value,
+                quality: jpgQualitySlider.value,
+                stripExif: stripExifCheck.checked,
+                downloadType: document.querySelector('input[name="downloadType"]:checked').value,
+                darkMode: document.documentElement.classList.contains('dark'),
+            };
+            localStorage.setItem('idaSettings', JSON.stringify(settings));
+        } catch (e) {
+            console.error("Could not save settings to localStorage.", e);
+        }
+    }
+
+    function loadSettings() {
+        try {
+            const settingsJSON = localStorage.getItem('idaSettings');
+            if (!settingsJSON) return;
+            const settings = JSON.parse(settingsJSON);
+
+            mInput.value = settings.m; mVal.textContent = settings.m;
+            xInput.value = settings.x; xVal.textContent = settings.x;
+            document.querySelector(`input[name="analysisMode"][value="${settings.analysisMode}"]`).checked = true;
+            luminanceOnlyCheck.checked = settings.luminanceOnly;
+            document.querySelector(`input[name="stitchDirection"][value="${settings.stitchDirection}"]`).checked = true;
+            detailsCheck.checked = settings.showDetails;
+            maxSizeInput.value = settings.maxSize;
+            advancedSettingsCheck.checked = settings.advanced;
+            namingPatternInput.value = settings.namingPattern;
+            reduceSizeSlider.value = settings.reduceSize; reduceSizeVal.textContent = settings.reduceSize;
+            document.querySelector(`input[name="fileFormat"][value="${settings.format}"]`).checked = true;
+            jpgQualitySlider.value = settings.quality; jpgQualityVal.textContent = settings.quality;
+            stripExifCheck.checked = settings.stripExif;
+            document.querySelector(`input[name="downloadType"][value="${settings.downloadType}"]`).checked = true;
+            
+            if (settings.darkMode) { document.documentElement.classList.add('dark'); } 
+            else { document.documentElement.classList.remove('dark'); }
+            
+            updateDarkModeIcon();
+            advancedSettingsContainer.classList.toggle('hidden', !settings.advanced);
+            jpgQualityContainer.classList.toggle('hidden', settings.format !== 'jpg');
+            zipWarning.classList.toggle('hidden', settings.downloadType !== 'zip');
+            batchSaveBtn.textContent = settings.downloadType === 'zip' ? 'Save as ZIP' : 'Save All Individually';
+        } catch (e) {
+            console.error("Could not load settings from localStorage.", e);
+            localStorage.removeItem('idaSettings'); // Clear corrupted settings
+        }
+    }
     
-    // --- Utility Functions ---
-    function clamp(val, mn, mx) { return Math.max(mn, Math.min(mx, val)); }
-    function clampInt(val, mn, mx) { return Math.floor(clamp(Math.abs(val), mn, mx)); }
+    document.addEventListener('DOMContentLoaded', loadSettings);
     
     async function processVideoFile(file) {
         alert("Video processing is not supported in this version.");
