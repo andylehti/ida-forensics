@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Image Degradation Analysis</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- JSZip for creating and downloading ZIP files -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"></script>
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -15,7 +13,7 @@
       cursor: pointer;
       padding: 8px;
       border-radius: 9999px;
-      transition: background-color 0.2s;
+      transition: background-color: 0.2s;
     }
     input[type="radio"]:checked + label {
       background-color: #e5e7eb;
@@ -142,7 +140,7 @@
             <button id="batchProcessStandardBtn" class="bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-6 rounded-full transition-colors">Process All (Standard)</button>
             <button id="batchProcessGridBtn" class="bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-6 rounded-full transition-colors">Process All (Grid)</button>
         </div>
-        <button id="batchSaveBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full transition-colors hidden">Save All as ZIP</button>
+        <button id="batchSaveBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full transition-colors hidden">Save All</button>
     </div>
     
     <div id="processing-indicator" class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400 min-h-[1.25rem]"></div>
@@ -153,6 +151,7 @@
   </div>
 
   <script>
+    // NOTE: JSZip script is no longer used for batch downloads but kept for single video frame saving.
     // === DOM Elements ===
     const fileInput = document.getElementById('fileInput');
     const batchFileInput = document.getElementById('batchFileInput');
@@ -189,7 +188,7 @@
     let loadedBatchFiles = [];
     let originalFileName = '';
     let processedFrames = [];
-    let batchResults = [];
+    let batchCanvases = [];
     let isVideo = false;
     let isBatchMode = false;
 
@@ -208,6 +207,7 @@
         if (isBatchMode) {
             toggleViewBtn.textContent = 'Switch to Single Mode';
             stitchLabel.textContent = 'Stitch Original to Grid:';
+            batchSaveBtn.textContent = 'Save All';
             clearCanvas();
         } else {
             toggleViewBtn.textContent = 'Switch to Batch Mode';
@@ -248,7 +248,7 @@
         loadedBatchFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
         fileList.textContent = `${loadedBatchFiles.length} image(s) selected.`;
         batchSaveBtn.classList.add('hidden');
-        batchResults = [];
+        batchCanvases = [];
         clearCanvas();
     }
     
@@ -398,7 +398,7 @@
     async function processBatch(mode) {
         if (loadedBatchFiles.length === 0) return;
         setProcessingState(true, 'Starting batch process...');
-        batchResults = [];
+        batchCanvases = [];
         batchSaveBtn.classList.add('hidden');
         const maxSize = parseInt(maxSizeInput.value) || 1000;
         
@@ -433,15 +433,16 @@
             
             const originalFileName = file.name.split('.').slice(0, -1).join('.');
             const newFileName = `${originalFileName}_${mode}.png`;
-            batchResults.push({ name: newFileName, canvas: resultCanvas });
+            
+            batchCanvases.push({ name: newFileName, canvas: resultCanvas });
 
             // Show preview of the last processed image
             drawResult(resultCanvas); 
         }
 
         setProcessingState(false, 'Batch processing complete.');
-        processingIndicator.textContent = `${batchResults.length} images processed and are ready to save.`;
-        if (batchResults.length > 0) {
+        processingIndicator.textContent = `${batchCanvases.length} images processed and are ready to save.`;
+        if (batchCanvases.length > 0) {
             batchSaveBtn.classList.remove('hidden');
         }
     }
@@ -648,7 +649,8 @@
     async function saveSingleResult() {
         if (!loadedFile) return;
 
-        if (isVideo) { // Video frame saving logic (remains the same)
+        if (isVideo) { // Video frame saving logic
+            // This still uses JSZip as it's efficient for many small frames from one source
             const zip = new JSZip();
             processedFrames.forEach((frame, index) => {
                 const base64 = frame.split(',')[1];
@@ -658,33 +660,44 @@
             downloadBlob(content, `${originalFileName}_processed_frames.zip`);
         } else {
             const dataURL = resultCanvas.toDataURL('image/png');
-            const link = document.createElement('a');
-            link.href = dataURL;
-            link.download = `${originalFileName}_IDA.png`;
-            link.click();
+            downloadDataURL(dataURL, `${originalFileName}_IDA.png`);
         }
     }
     
     async function saveBatchResults() {
-        if (batchResults.length === 0) return;
-        setProcessingState(true, 'Zipping files...');
+        if (!batchCanvases || batchCanvases.length === 0) return;
+        setProcessingState(true, 'Saving files...');
         
-        const zip = new JSZip();
-        for (const result of batchResults) {
-            const blob = await new Promise(resolve => result.canvas.toBlob(resolve, 'image/png'));
-            zip.file(result.name, blob);
+        for (let i = 0; i < batchCanvases.length; i++) {
+            const item = batchCanvases[i];
+            setProcessingState(true, `Downloading ${i + 1} of ${batchCanvases.length}: ${item.name}`);
+            const dataURL = item.canvas.toDataURL('image/png');
+            downloadDataURL(dataURL, item.name);
+            // Add a small delay between downloads to prevent browser from blocking them
+            await new Promise(resolve => setTimeout(resolve, 250)); 
         }
         
-        const content = await zip.generateAsync({ type: "blob", compression: "STORE" });
-        downloadBlob(content, `IDA_Batch_Results.zip`);
         setProcessingState(false);
+        processingIndicator.textContent = `Finished downloading ${batchCanvases.length} files.`;
+        batchCanvases = [];
+    }
+
+    function downloadDataURL(dataURL, filename) {
+        const link = document.createElement('a');
+        link.href = dataURL;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
     
     function downloadBlob(blob, filename) {
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
         link.download = filename;
+        document.body.appendChild(link);
         link.click();
+        document.body.removeChild(link);
         URL.revokeObjectURL(link.href);
     }
     
