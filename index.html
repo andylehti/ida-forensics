@@ -654,7 +654,7 @@
                 const base64 = frame.split(',')[1];
                 zip.file(`${originalFileName}_frame_${String(index+1).padStart(4, '0')}.png`, base64, { base64: true });
             });
-            const content = await zip.generateAsync({ type: "blob" });
+            const content = await zip.generateAsync({ type: "blob", compression: "STORE" });
             downloadBlob(content, `${originalFileName}_processed_frames.zip`);
         } else {
             const dataURL = resultCanvas.toDataURL('image/png');
@@ -675,7 +675,7 @@
             zip.file(result.name, blob);
         }
         
-        const content = await zip.generateAsync({ type: "blob" });
+        const content = await zip.generateAsync({ type: "blob", compression: "STORE" });
         downloadBlob(content, `IDA_Batch_Results.zip`);
         setProcessingState(false);
     }
