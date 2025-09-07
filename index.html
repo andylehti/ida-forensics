@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Image Degradation Analysis</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- JSZip for creating and downloading ZIP files -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"></script>
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -94,31 +96,20 @@
           </div>
         </div>
         
-        <!-- Stitch Controls for Single & Batch Grid -->
         <div class="flex flex-col items-center justify-center mb-6">
           <div class="flex items-center justify-center mb-4">
             <span id="stitchLabel" class="font-semibold mr-4 text-center">Stitch Direction:</span>
             <div class="flex space-x-2" id="stitchControls">
                 <input type="radio" id="stitchNone" name="stitchDirection" value="none" class="hidden" checked>
-                <label for="stitchNone" title="None" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600">
-                    <span class="font-bold text-gray-800 dark:text-gray-200">X</span>
-                </label>
+                <label for="stitchNone" title="None" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600"><span class="font-bold text-gray-800 dark:text-gray-200">X</span></label>
                 <input type="radio" id="stitchLeft" name="stitchDirection" value="left" class="hidden">
-                <label for="stitchLeft" title="Left" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-                </label>
+                <label for="stitchLeft" title="Left" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></label>
                 <input type="radio" id="stitchTop" name="stitchDirection" value="top" class="hidden">
-                <label for="stitchTop" title="Top" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" /></svg>
-                </label>
+                <label for="stitchTop" title="Top" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" /></svg></label>
                 <input type="radio" id="stitchBottom" name="stitchDirection" value="bottom" class="hidden">
-                <label for="stitchBottom" title="Bottom" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                </label>
+                <label for="stitchBottom" title="Bottom" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg></label>
                 <input type="radio" id="stitchRight" name="stitchDirection" value="right" class="hidden">
-                <label for="stitchRight" title="Right" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                </label>
+                <label for="stitchRight" title="Right" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></label>
             </div>
           </div>
           <div class="flex items-center justify-center">
@@ -140,6 +131,43 @@
             <button id="batchProcessStandardBtn" class="bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-6 rounded-full transition-colors">Process All (Standard)</button>
             <button id="batchProcessGridBtn" class="bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-6 rounded-full transition-colors">Process All (Grid)</button>
         </div>
+        
+        <!-- Advanced Settings -->
+        <div class="w-full pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+            <div class="flex items-center justify-center">
+                <input id="advancedSettingsCheck" type="checkbox" class="w-4 h-4 text-violet-600 bg-gray-100 rounded border-gray-300 dark:bg-gray-700 dark:border-gray-600 focus:ring-violet-500">
+                <label for="advancedSettingsCheck" class="ml-2 font-semibold">Show Advanced Settings</label>
+            </div>
+
+            <div id="advancedSettingsContainer" class="hidden mt-4 space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                    <div>
+                        <label for="reduceSizeSlider" class="font-semibold mb-2 block">Reduce Size: <span id="reduceSizeVal" class="font-normal">50</span>%</label>
+                        <input id="reduceSizeSlider" type="range" min="10" max="100" value="50" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="font-semibold mb-2 block">File Format:</label>
+                        <div class="flex space-x-4">
+                            <label><input type="radio" name="fileFormat" value="png"> PNG</label>
+                            <label><input type="radio" name="fileFormat" value="jpg" checked> JPG</label>
+                        </div>
+                    </div>
+                </div>
+                <div id="jpgQualityContainer">
+                    <label for="jpgQualitySlider" class="font-semibold mb-2 block">JPG Quality: <span id="jpgQualityVal" class="font-normal">80</span></label>
+                    <input id="jpgQualitySlider" type="range" min="1" max="100" value="80" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                </div>
+                <div>
+                     <label class="font-semibold mb-2 block">Download As:</label>
+                    <div class="flex space-x-4">
+                        <label><input type="radio" name="downloadType" value="individual" checked> Individual Files</label>
+                        <label><input type="radio" name="downloadType" value="zip"> ZIP file</label>
+                    </div>
+                    <p id="zipWarning" class="text-xs text-yellow-600 dark:text-yellow-400 mt-2 hidden">Warning: Zipping large, un-reduced files may be slow or fail in some browsers.</p>
+                </div>
+            </div>
+        </div>
+
         <button id="batchSaveBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full transition-colors hidden">Save All</button>
     </div>
     
@@ -151,7 +179,6 @@
   </div>
 
   <script>
-    // NOTE: JSZip script is no longer used for batch downloads but kept for single video frame saving.
     // === DOM Elements ===
     const fileInput = document.getElementById('fileInput');
     const batchFileInput = document.getElementById('batchFileInput');
@@ -181,6 +208,15 @@
     const maxSizeInput = document.getElementById('maxSizeInput');
     const fileList = document.getElementById('fileList');
     const stitchLabel = document.getElementById('stitchLabel');
+    // Advanced Settings Elements
+    const advancedSettingsCheck = document.getElementById('advancedSettingsCheck');
+    const advancedSettingsContainer = document.getElementById('advancedSettingsContainer');
+    const reduceSizeSlider = document.getElementById('reduceSizeSlider');
+    const reduceSizeVal = document.getElementById('reduceSizeVal');
+    const jpgQualityContainer = document.getElementById('jpgQualityContainer');
+    const jpgQualitySlider = document.getElementById('jpgQualitySlider');
+    const jpgQualityVal = document.getElementById('jpgQualityVal');
+    const zipWarning = document.getElementById('zipWarning');
 
 
     // === App State ===
@@ -207,7 +243,6 @@
         if (isBatchMode) {
             toggleViewBtn.textContent = 'Switch to Single Mode';
             stitchLabel.textContent = 'Stitch Original to Grid:';
-            batchSaveBtn.textContent = 'Save All';
             clearCanvas();
         } else {
             toggleViewBtn.textContent = 'Switch to Batch Mode';
@@ -255,25 +290,17 @@
     // --- Processing Buttons ---
     processBtn.addEventListener('click', async () => {
       if (!loadedFile) return;
-      if (isVideo) {
-        await processVideoFile(loadedFile);
-      } else {
-        await processImageFile(loadedFile);
-      }
+      if (isVideo) { await processVideoFile(loadedFile); } 
+      else { await processImageFile(loadedFile); }
     });
-
     gridBtn.addEventListener('click', () => generateSingleGrid(loadedFile));
     standardBtn.addEventListener('click', async () => {
         if (!loadedFile || isVideo) return;
         setProcessingState(true);
-        mInput.value = 4;
-        xInput.value = 5;
-        mVal.textContent = 4;
-        xVal.textContent = 5;
+        mInput.value = 4; xInput.value = 5;
+        mVal.textContent = 4; xVal.textContent = 5;
         await processImageFile(loadedFile);
     });
-
-    // --- Batch Processing Buttons ---
     batchProcessStandardBtn.addEventListener('click', () => processBatch('standard'));
     batchProcessGridBtn.addEventListener('click', () => processBatch('grid'));
 
@@ -291,50 +318,50 @@
             : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>`;
     });
 
+    // --- Advanced Settings Listeners ---
+    advancedSettingsCheck.addEventListener('change', () => {
+        advancedSettingsContainer.classList.toggle('hidden', !advancedSettingsCheck.checked);
+    });
+    reduceSizeSlider.addEventListener('input', () => { reduceSizeVal.textContent = reduceSizeSlider.value; });
+    jpgQualitySlider.addEventListener('input', () => { jpgQualityVal.textContent = jpgQualitySlider.value; });
+    document.querySelectorAll('input[name="fileFormat"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            jpgQualityContainer.classList.toggle('hidden', e.target.value !== 'jpg');
+        });
+    });
+     document.querySelectorAll('input[name="downloadType"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            zipWarning.classList.toggle('hidden', e.target.value !== 'zip');
+        });
+    });
+
 
     // === Core Logic Functions ===
     
-    /** Sets the UI to a processing or idle state. */
     function setProcessingState(isProcessing, message = 'Processing...') {
       const allButtons = [processBtn, gridBtn, standardBtn, saveBtn, batchProcessGridBtn, batchProcessStandardBtn, batchSaveBtn];
       processingIndicator.textContent = isProcessing ? message : '';
-
       allButtons.forEach(btn => {
         btn.disabled = isProcessing;
-        if (isProcessing) {
-            btn.classList.add('button-disabled');
-        } else {
-            btn.classList.remove('button-disabled');
-        }
+        btn.classList.toggle('button-disabled', isProcessing);
       });
     }
     
-    /** Sets up drag and drop listeners for a given area. */
     function setupDragDrop(area, callback) {
-        area.addEventListener('dragover', e => {
-            e.preventDefault();
-            area.classList.add('drag-over');
-        });
-        area.addEventListener('dragleave', e => {
-            area.classList.remove('drag-over');
-        });
+        area.addEventListener('dragover', e => { e.preventDefault(); area.classList.add('drag-over'); });
+        area.addEventListener('dragleave', e => { area.classList.remove('drag-over'); });
         area.addEventListener('drop', e => {
             e.preventDefault();
             area.classList.remove('drag-over');
-            if (e.dataTransfer.files.length > 0) {
-                callback(e.dataTransfer.files);
-            }
+            if (e.dataTransfer.files.length > 0) { callback(e.dataTransfer.files); }
         });
     }
 
-    /** Clears the main result canvas. */
     function clearCanvas() {
         rCtx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
-        resultCanvas.width = 1; // Reset to avoid showing old image stretched
-        resultCanvas.height = 1;
+        resultCanvas.width = 1; resultCanvas.height = 1;
     }
 
-    /** Draws a canvas element to the main result canvas. */
     function drawResult(canvasElem) {
         if (canvasElem) {
             resultCanvas.width = canvasElem.width;
@@ -344,7 +371,6 @@
         }
     }
 
-    /** Adds text details to a canvas context. */
     function addDetailsText(ctx, text, x, y, width, height) {
         const padding = Math.min(width, height) * 0.02;
         const fontSize = Math.max(12, Math.min(width, height) * 0.03);
@@ -358,7 +384,6 @@
         ctx.fillText(text, textX, textY);
     }
     
-    // --- Single File Processing ---
     async function processImageFile(file) {
       setProcessingState(true);
       const img = await loadImage(URL.createObjectURL(file));
@@ -394,7 +419,6 @@
         setProcessingState(false);
     }
     
-    // --- Batch Processing ---
     async function processBatch(mode) {
         if (loadedBatchFiles.length === 0) return;
         setProcessingState(true, 'Starting batch process...');
@@ -432,11 +456,9 @@
             }
             
             const originalFileName = file.name.split('.').slice(0, -1).join('.');
-            const newFileName = `${originalFileName}_${mode}.png`;
+            const newFileName = `${originalFileName}_${mode}`; // Extension added at save time
             
             batchCanvases.push({ name: newFileName, canvas: resultCanvas });
-
-            // Show preview of the last processed image
             drawResult(resultCanvas); 
         }
 
@@ -447,7 +469,6 @@
         }
     }
     
-    // --- Image Manipulation ---
     function loadImage(src) {
         return new Promise((resolve, reject) => {
             const img = new Image();
@@ -458,25 +479,21 @@
     }
 
     function resizeImage(img, maxSize) {
-        return new Promise(resolve => {
-            const { width, height } = img;
-            let newWidth, newHeight;
-
-            if (width > height) {
-                newWidth = maxSize;
-                newHeight = (height / width) * maxSize;
-            } else {
-                newHeight = maxSize;
-                newWidth = (width / height) * maxSize;
-            }
-
-            const canvas = document.createElement('canvas');
-            canvas.width = newWidth;
-            canvas.height = newHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, newWidth, newHeight);
-            resolve(canvas);
-        });
+        const { width, height } = img;
+        let newWidth, newHeight;
+        if (width > height) {
+            newWidth = maxSize;
+            newHeight = (height / width) * maxSize;
+        } else {
+            newHeight = maxSize;
+            newWidth = (width / height) * maxSize;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, newWidth, newHeight);
+        return canvas;
     }
 
     async function processSingleImage(img, m, x, stitchDirection) {
@@ -500,14 +517,10 @@
 
         const gridCanvas = document.createElement('canvas');
         const gridCtx = gridCanvas.getContext('2d');
-        const itemWidth = img.width;
-        const itemHeight = img.height;
-        gridCanvas.width = itemWidth * 5;
-        gridCanvas.height = itemHeight * 2;
-        
+        const itemWidth = img.width; const itemHeight = img.height;
+        gridCanvas.width = itemWidth * 5; gridCanvas.height = itemHeight * 2;
         resultCanvases.forEach((canvasData, i) => {
-            const row = Math.floor(i / 5);
-            const col = i % 5;
+            const row = Math.floor(i / 5); const col = i % 5;
             gridCtx.drawImage(canvasData, col * itemWidth, row * itemHeight);
         });
         return gridCanvas;
@@ -516,35 +529,26 @@
     function compressImage(imgElem, q) {
       return new Promise(resolve => {
         let tempCanvas = document.createElement('canvas');
-        tempCanvas.width = imgElem.width;
-        tempCanvas.height = imgElem.height;
+        tempCanvas.width = imgElem.width; tempCanvas.height = imgElem.height;
         let tCtx = tempCanvas.getContext('2d');
         tCtx.drawImage(imgElem, 0, 0);
-        let data = tempCanvas.toDataURL('image/jpeg', q / 100); // JPEG quality is 0-1
+        let data = tempCanvas.toDataURL('image/jpeg', q / 100);
         resolve(loadImage(data));
       });
     }
 
     function createDiff(orig, comp, sFactor) {
       let w = orig.width, h = orig.height;
-      let oCanvas = document.createElement('canvas'); oCanvas.width = w; oCanvas.height = h;
-      let oCtx = oCanvas.getContext('2d'); oCtx.drawImage(orig, 0, 0);
+      let oCtx = document.createElement('canvas').getContext('2d'); oCtx.canvas.width=w; oCtx.canvas.height=h; oCtx.drawImage(orig, 0, 0);
       let oData = oCtx.getImageData(0, 0, w, h).data;
-      
-      let cCanvas = document.createElement('canvas'); cCanvas.width = w; cCanvas.height = h;
-      let cCtx = cCanvas.getContext('2d'); cCtx.drawImage(comp, 0, 0);
+      let cCtx = document.createElement('canvas').getContext('2d'); cCtx.canvas.width=w; cCtx.canvas.height=h; cCtx.drawImage(comp, 0, 0);
       let cData = cCtx.getImageData(0, 0, w, h).data;
-      
-      let dCanvas = document.createElement('canvas'); dCanvas.width = w; dCanvas.height = h;
-      let dCtx = dCanvas.getContext('2d');
-      let diffData = dCtx.createImageData(w, h);
-      let diffArr = diffData.data;
-
+      let dCtx = document.createElement('canvas').getContext('2d'); dCtx.canvas.width=w; dCtx.canvas.height=h;
+      let diffData = dCtx.createImageData(w, h); let diffArr = diffData.data;
       let maxDiff = 0;
       for (let i = 0; i < oData.length; i += 4) {
         maxDiff = Math.max(maxDiff, Math.abs(oData[i] - cData[i]), Math.abs(oData[i + 1] - cData[i + 1]), Math.abs(oData[i + 2] - cData[i + 2]));
       }
-      
       let scale = sFactor / (maxDiff || 1);
       for (let i = 0; i < oData.length; i += 4) {
         diffArr[i]     = clamp(Math.abs(oData[i] - cData[i]) * scale, 0, 255);
@@ -553,7 +557,7 @@
         diffArr[i + 3] = 255;
       }
       dCtx.putImageData(diffData, 0, 0);
-      return dCanvas;
+      return dCtx.canvas;
     }
 
     function resizeToMatch(imageToResize, referenceImage, dimension) {
@@ -563,84 +567,44 @@
         const { width: refW, height: refH } = referenceImage;
         const aspectRatio = origW / origH;
         let newW, newH;
-
-        if (dimension === 'height') {
-            newH = refH;
-            newW = newH * aspectRatio;
-        } else { // dimension === 'width'
-            newW = refW;
-            newH = newW / aspectRatio;
-        }
-        canvas.width = newW;
-        canvas.height = newH;
+        if (dimension === 'height') { newH = refH; newW = newH * aspectRatio; } 
+        else { newW = refW; newH = newW / aspectRatio; }
+        canvas.width = newW; canvas.height = newH;
         ctx.drawImage(imageToResize, 0, 0, newW, newH);
         return canvas;
     }
 
     function stitchGridWithOriginal(originalImage, gridCanvas, direction) {
-        if (direction === 'none') {
-            return gridCanvas;
-        }
+        if (direction === 'none') { return gridCanvas; }
         let resizedOriginal;
         let finalCanvas = document.createElement('canvas');
         let fCtx = finalCanvas.getContext('2d');
         const { width: gridW, height: gridH } = gridCanvas;
-
         if (direction === 'left' || direction === 'right') {
             resizedOriginal = resizeToMatch(originalImage, gridCanvas, 'height');
             const { width: resizedW, height: resizedH } = resizedOriginal;
-            finalCanvas.width = gridW + resizedW;
-            finalCanvas.height = gridH;
-            if (direction === 'left') {
-                fCtx.drawImage(resizedOriginal, 0, 0);
-                fCtx.drawImage(gridCanvas, resizedW, 0);
-            } else {
-                fCtx.drawImage(gridCanvas, 0, 0);
-                fCtx.drawImage(resizedOriginal, gridW, 0);
-            }
+            finalCanvas.width = gridW + resizedW; finalCanvas.height = gridH;
+            if (direction === 'left') { fCtx.drawImage(resizedOriginal, 0, 0); fCtx.drawImage(gridCanvas, resizedW, 0); } 
+            else { fCtx.drawImage(gridCanvas, 0, 0); fCtx.drawImage(resizedOriginal, gridW, 0); }
         } else { // 'top' or 'bottom'
             resizedOriginal = resizeToMatch(originalImage, gridCanvas, 'width');
             const { width: resizedW, height: resizedH } = resizedOriginal;
-            finalCanvas.width = gridW;
-            finalCanvas.height = gridH + resizedH;
-            if (direction === 'top') {
-                fCtx.drawImage(resizedOriginal, 0, 0);
-                fCtx.drawImage(gridCanvas, 0, resizedH);
-            } else {
-                fCtx.drawImage(gridCanvas, 0, 0);
-                fCtx.drawImage(resizedOriginal, 0, gridH);
-            }
+            finalCanvas.width = gridW; finalCanvas.height = gridH + resizedH;
+            if (direction === 'top') { fCtx.drawImage(resizedOriginal, 0, 0); fCtx.drawImage(gridCanvas, 0, resizedH); } 
+            else { fCtx.drawImage(gridCanvas, 0, 0); fCtx.drawImage(resizedOriginal, 0, gridH); }
         }
         return finalCanvas;
     }
 
-
     function stitchImage(orig, diff, direction) {
-        let finalCanvas = document.createElement('canvas');
-        let fCtx = finalCanvas.getContext('2d');
+        let finalCanvas = document.createElement('canvas'); let fCtx = finalCanvas.getContext('2d');
         let w = orig.width, h = orig.height;
-
         switch(direction) {
-            case 'left':
-                finalCanvas.width = w * 2; finalCanvas.height = h;
-                fCtx.drawImage(diff, 0, 0); fCtx.drawImage(orig, w, 0);
-                break;
-            case 'right':
-                finalCanvas.width = w * 2; finalCanvas.height = h;
-                fCtx.drawImage(orig, 0, 0); fCtx.drawImage(diff, w, 0);
-                break;
-            case 'top':
-                finalCanvas.width = w; finalCanvas.height = h * 2;
-                fCtx.drawImage(diff, 0, 0); fCtx.drawImage(orig, 0, h);
-                break;
-            case 'bottom':
-                finalCanvas.width = w; finalCanvas.height = h * 2;
-                fCtx.drawImage(orig, 0, 0); fCtx.drawImage(diff, 0, h);
-                break;
-            default: // 'none'
-                finalCanvas.width = diff.width; finalCanvas.height = diff.height;
-                fCtx.drawImage(diff, 0, 0);
-                break;
+            case 'left': finalCanvas.width = w * 2; finalCanvas.height = h; fCtx.drawImage(diff, 0, 0); fCtx.drawImage(orig, w, 0); break;
+            case 'right': finalCanvas.width = w * 2; finalCanvas.height = h; fCtx.drawImage(orig, 0, 0); fCtx.drawImage(diff, w, 0); break;
+            case 'top': finalCanvas.width = w; finalCanvas.height = h * 2; fCtx.drawImage(diff, 0, 0); fCtx.drawImage(orig, 0, h); break;
+            case 'bottom': finalCanvas.width = w; finalCanvas.height = h * 2; fCtx.drawImage(orig, 0, 0); fCtx.drawImage(diff, 0, h); break;
+            default: finalCanvas = diff; break;
         }
         return finalCanvas;
     }
@@ -648,9 +612,7 @@
     // --- Saving Functions ---
     async function saveSingleResult() {
         if (!loadedFile) return;
-
-        if (isVideo) { // Video frame saving logic
-            // This still uses JSZip as it's efficient for many small frames from one source
+        if (isVideo) {
             const zip = new JSZip();
             processedFrames.forEach((frame, index) => {
                 const base64 = frame.split(',')[1];
@@ -666,15 +628,54 @@
     
     async function saveBatchResults() {
         if (!batchCanvases || batchCanvases.length === 0) return;
-        setProcessingState(true, 'Saving files...');
-        
-        for (let i = 0; i < batchCanvases.length; i++) {
-            const item = batchCanvases[i];
-            setProcessingState(true, `Downloading ${i + 1} of ${batchCanvases.length}: ${item.name}`);
-            const dataURL = item.canvas.toDataURL('image/png');
-            downloadDataURL(dataURL, item.name);
-            // Add a small delay between downloads to prevent browser from blocking them
-            await new Promise(resolve => setTimeout(resolve, 250)); 
+        setProcessingState(true, 'Preparing downloads...');
+
+        const useAdvanced = advancedSettingsCheck.checked;
+        const sizeReduction = useAdvanced ? parseInt(reduceSizeSlider.value) / 100 : 1.0;
+        const format = useAdvanced ? document.querySelector('input[name="fileFormat"]:checked').value : 'png';
+        const quality = useAdvanced ? parseInt(jpgQualitySlider.value) / 100 : 0.8;
+        const downloadType = useAdvanced ? document.querySelector('input[name="downloadType"]:checked').value : 'individual';
+        const mimeType = `image/${format === 'jpg' ? 'jpeg' : 'png'}`;
+
+        const getOutputFile = (item) => {
+            return new Promise(resolve => {
+                const sourceCanvas = item.canvas;
+                const tempCanvas = document.createElement('canvas');
+                const tCtx = tempCanvas.getContext('2d');
+                
+                tempCanvas.width = sourceCanvas.width * sizeReduction;
+                tempCanvas.height = sourceCanvas.height * sizeReduction;
+                
+                tCtx.drawImage(sourceCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
+                
+                if (downloadType === 'zip') {
+                    tempCanvas.toBlob(resolve, mimeType, quality);
+                } else {
+                    resolve(tempCanvas.toDataURL(mimeType, quality));
+                }
+            });
+        };
+
+        if (downloadType === 'zip') {
+            const zip = new JSZip();
+            for (let i = 0; i < batchCanvases.length; i++) {
+                const item = batchCanvases[i];
+                setProcessingState(true, `Zipping ${i + 1} of ${batchCanvases.length}: ${item.name}`);
+                const blob = await getOutputFile(item);
+                zip.file(`${item.name}.${format}`, blob);
+            }
+            setProcessingState(true, 'Generating ZIP file...');
+            const content = await zip.generateAsync({ type: "blob", compression: "STORE" });
+            downloadBlob(content, 'IDA_Batch_Results.zip');
+
+        } else { // Individual downloads
+             for (let i = 0; i < batchCanvases.length; i++) {
+                const item = batchCanvases[i];
+                setProcessingState(true, `Downloading ${i + 1} of ${batchCanvases.length}: ${item.name}`);
+                const dataURL = await getOutputFile(item);
+                downloadDataURL(dataURL, `${item.name}.${format}`);
+                await new Promise(resolve => setTimeout(resolve, 250)); 
+            }
         }
         
         setProcessingState(false);
@@ -683,21 +684,13 @@
     }
 
     function downloadDataURL(dataURL, filename) {
-        const link = document.createElement('a');
-        link.href = dataURL;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        const link = document.createElement('a'); link.href = dataURL; link.download = filename;
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
     
     function downloadBlob(blob, filename) {
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = filename;
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
         URL.revokeObjectURL(link.href);
     }
     
@@ -705,11 +698,8 @@
     function clamp(val, mn, mx) { return Math.max(mn, Math.min(mx, val)); }
     function clampInt(val, mn, mx) { return Math.floor(clamp(Math.abs(val), mn, mx)); }
     
-    // Note: Video processing logic is omitted for brevity as it was complex and not part of the new request.
-    // The stubs (isVideo checks) are left in place if you wish to re-integrate it.
     async function processVideoFile(file) {
         alert("Video processing is not supported in this version.");
-        // Placeholder for video logic
         setProcessingState(false);
     }
   </script>
