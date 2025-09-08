@@ -133,12 +133,12 @@
                             </div>
                         </div>
                         <div id="mContainer">
-                            <label for="mInput" class="font-semibold mb-2 block">Exposure (m): <span id="mVal" class="font-normal">4</span></label>
-                            <input id="mInput" type="range" min="1" max="10" value="4" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <label for="mInput" class="font-semibold mb-2 block">Factor (m): <span id="mVal" class="font-normal">4</span></label>
+                            <input id="mInput" type="range" min="1" max="5" value="4" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
                         </div>
                         <div id="idaSpecificControls">
-                            <label for="xInput" class="font-semibold mb-2 block">IDA Degradation (x): <span id="xVal" class="font-normal">5</span></label>
-                            <input id="xInput" type="range" min="1" max="100" value="5" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <label for="xInput" class="font-semibold mb-2 block">Degradation (x): <span id="xVal" class="font-normal">5</span></label>
+                            <input id="xInput" type="range" min="1" max="10" value="5" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
                         </div>
                     </div>
 
@@ -205,9 +205,9 @@
                      <div class="flex flex-col items-center justify-center gap-2">
                         <div class="flex items-center gap-4">
                             <label for="rangeStartInput">Process x from</label>
-                            <input type="number" id="rangeStartInput" value="50" class="bg-gray-200 dark:bg-gray-700 rounded-lg p-2 w-24 text-center">
+                            <input type="number" id="rangeStartInput" value="5" class="bg-gray-200 dark:bg-gray-700 rounded-lg p-2 w-24 text-center">
                             <label for="rangeEndInput">to</label>
-                            <input type="number" id="rangeEndInput" value="70" class="bg-gray-200 dark:bg-gray-700 rounded-lg p-2 w-24 text-center">
+                            <input type="number" id="rangeEndInput" value="10" class="bg-gray-200 dark:bg-gray-700 rounded-lg p-2 w-24 text-center">
                         </div>
                         <button id="batchProcessRangeBtn" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-6 rounded-full transition-colors mt-2">Process IDA Range</button>
                      </div>
@@ -369,6 +369,7 @@
         thresholdSlider.addEventListener('input', () => { thresholdVal.textContent = thresholdSlider.value; });
         document.querySelectorAll('input[name="topLevelAnalysisMode"]').forEach(radio => radio.addEventListener('change', updateControlsBasedOnMode));
         document.querySelectorAll('input[name="channelMode"]').forEach(radio => radio.addEventListener('change', updateControlsBasedOnMode));
+        document.querySelectorAll('input[name="subAnalysisMode"]').forEach(radio => radio.addEventListener('change', updateControlsBasedOnMode));
         processBtn.addEventListener('click', () => { if (loadedFile) processImageFile(loadedFile); });
         gridBtn.addEventListener('click', () => { if (loadedFile) processImageFile(loadedFile, true); });
         standardBtn.addEventListener('click', resetToStandardAndProcess);
@@ -382,7 +383,6 @@
         document.querySelectorAll('input[name="fileFormat"]').forEach(radio => { radio.addEventListener('change', (e) => jpgQualityContainer.classList.toggle('hidden', e.target.value !== 'jpg')); });
         document.querySelectorAll('input[name="downloadType"]').forEach(radio => { radio.addEventListener('change', (e) => { zipWarning.classList.toggle('hidden', e.target.value !== 'zip'); batchSaveBtn.textContent = e.target.value === 'zip' ? 'Save as ZIP' : 'Save All Individually'; }); });
         document.querySelectorAll('input, select').forEach(input => { input.addEventListener('change', saveCurrentUIToLocalStorage); });
-        // New listener
         batchProcessRangeBtn.addEventListener('click', processBatchRange);
     }
     
@@ -423,22 +423,77 @@
     async function compressImage(img, quality) { const canvas = document.createElement('canvas'); canvas.width = img.width; canvas.height = img.height; canvas.getContext('2d').drawImage(img, 0, 0); const dataUrl = canvas.toDataURL('image/jpeg', quality / 100); return await loadImage(dataUrl); }
 
     // === Core Image Processing Logic ===
-    function getPixelValueForChannel(r_diff, g_diff, b_diff, params) { const { channelMode, threshold, scale } = params; let r, g, b; switch (channelMode) { case 'luminescence': const lum = (r_diff + g_diff + b_diff) / 3; r = g = b = clamp(lum * scale, 0, 255); break; case 'inverted': r = 255 - clamp(r_diff * scale, 0, 255); g = 255 - clamp(g_diff * scale, 0, 255); b = 255 - clamp(b_diff * scale, 0, 255); break; case 'heatmap': const intensity = clamp(((r_diff + g_diff + b_diff) / 3 * scale) / 255, 0, 1); r = clamp(255 * Math.sqrt(intensity), 0, 255); g = clamp(255 * (1 - Math.abs(intensity - 0.5) * 2), 0, 255); b = clamp(255 * Math.sqrt(1 - intensity), 0, 255); break; case 'threshold': const avg = (r_diff + g_diff + b_diff) / 3; r = g = b = (avg > threshold ? 255 : 0); break; case 'standard': default: r = clamp(r_diff * scale, 0, 255); g = clamp(g_diff * scale, 0, 255); b = clamp(b_diff * scale, 0, 255); break; } return { r, g, b }; }
-    function createDiffCanvas(img1, img2, params) { const w = img1.width, h = img1.height; const oCtx = document.createElement('canvas').getContext('2d'); oCtx.canvas.width = w; oCtx.canvas.height = h; oCtx.drawImage(img1, 0, 0); const oData = oCtx.getImageData(0, 0, w, h).data; const cCtx = document.createElement('canvas').getContext('2d'); cCtx.canvas.width = w; cCtx.canvas.height = h; cCtx.drawImage(img2, 0, 0); const cData = cCtx.getImageData(0, 0, w, h).data; const diffCanvas = document.createElement('canvas'); diffCanvas.width = w; diffCanvas.height = h; const dCtx = diffCanvas.getContext('2d'); const diffData = dCtx.createImageData(w, h); const sFactor = (params.topLevelAnalysisMode === 'ela') ? (params.m * 25) : (params.m * (params.x * 5) * 47); let maxDiff = 0; for (let i = 0; i < oData.length; i += 4) { maxDiff = Math.max(maxDiff, Math.abs(oData[i] - cData[i]), Math.abs(oData[i + 1] - cData[i + 1]), Math.abs(oData[i + 2] - cData[i + 2])); } const scale = sFactor / (maxDiff || 1); const pixelParams = { ...params, scale }; for (let i = 0; i < oData.length; i += 4) { const r_d = Math.abs(oData[i] - cData[i]); const g_d = Math.abs(oData[i+1] - cData[i+1]); const b_d = Math.abs(oData[i+2] - cData[i+2]); const { r, g, b } = getPixelValueForChannel(r_d, g_d, b_d, pixelParams); diffData.data[i] = r; diffData.data[i+1] = g; diffData.data[i+2] = b; diffData.data[i+3] = 255; } dCtx.putImageData(diffData, 0, 0); return diffCanvas; }
+
+    // Corrected function from the old script
+    function processAnalysisModes(oData, cData, dArr, w, h, params) {
+        const { topLevelAnalysisMode, channelMode, m, x, threshold } = params;
+        const sFactor = (topLevelAnalysisMode === 'ela') ? (7*25) : (m * (x * 5) * 47);
+        
+        let maxDiff = 0;
+        for (let i = 0; i < oData.length; i += 4) {
+            maxDiff = Math.max(maxDiff, Math.abs(oData[i] - cData[i]), Math.abs(oData[i + 1] - cData[i + 1]), Math.abs(oData[i + 2] - cData[i + 2]));
+        }
+        const scale = sFactor / (maxDiff || 1);
+
+        for (let i = 0; i < oData.length; i += 4) {
+            let r = Math.abs(oData[i] - cData[i]);
+            let g = Math.abs(oData[i+1] - cData[i+1]);
+            let b = Math.abs(oData[i+2] - cData[i+2]);
+            
+            switch(channelMode) {
+                case 'standard': dArr[i] = clamp(r*scale,0,255); dArr[i+1]=clamp(g*scale,0,255); dArr[i+2]=clamp(b*scale,0,255); break;
+                case 'luminescence': const lum=(r+g+b)/3; dArr[i]=dArr[i+1]=dArr[i+2]=clamp(lum*scale,0,255); break;
+                case 'inverted': dArr[i]=255-clamp(r*scale,0,255); dArr[i+1]=255-clamp(g*scale,0,255); dArr[i+2]=255-clamp(b*scale,0,255); break;
+                case 'heatmap': 
+                    const intensity = clamp((r+g+b)/3*scale/255,0,1); 
+                    dArr[i]=clamp(255*Math.sqrt(intensity),0,255); 
+                    dArr[i+1]=clamp(255*(1-Math.abs(intensity-0.5)*2),0,255); 
+                    dArr[i+2]=clamp(255*Math.sqrt(1-intensity),0,255); 
+                    break;
+                case 'threshold': const a=(r+g+b)/3; dArr[i]=dArr[i+1]=dArr[i+2]=(a>threshold?255:0); break;
+            }
+            dArr[i+3] = 255;
+        }
+    }
     
+    // This is a helper for `getAnalysisCanvas`, now using the corrected `processAnalysisModes`
+    function createDiffCanvas(img1, img2, params) {
+        const w = img1.width, h = img1.height;
+        const oCtx = document.createElement('canvas').getContext('2d'); oCtx.canvas.width = w; oCtx.canvas.height = h;
+        oCtx.drawImage(img1, 0, 0);
+        const oData = oCtx.getImageData(0, 0, w, h).data;
+        const cCtx = document.createElement('canvas').getContext('2d'); cCtx.canvas.width = w; cCtx.canvas.height = h;
+        cCtx.drawImage(img2, 0, 0);
+        const cData = cCtx.getImageData(0, 0, w, h).data;
+        const diffCanvas = document.createElement('canvas'); diffCanvas.width = w; diffCanvas.height = h;
+        const dCtx = diffCanvas.getContext('2d');
+        const diffData = dCtx.createImageData(w, h);
+        
+        // This is the key change: call the corrected function
+        processAnalysisModes(oData, cData, diffData.data, w, h, params);
+        
+        dCtx.putImageData(diffData, 0, 0);
+        return diffCanvas;
+    }
+
     async function getAnalysisCanvas(origImg, params) {
         if (params.topLevelAnalysisMode === 'hybrid') return getHybridCanvas(origImg, params);
         if (params.topLevelAnalysisMode === 'double-exposure') return getDoubleExposureCanvas(origImg, params);
-        
-        // Handle sub-analysis modes which might modify the input or output
         if (params.subAnalysisMode === 'edge-analysis') return getEdgeAnalysisCanvas(origImg, params);
         if (params.subAnalysisMode === 'chroma-analysis') return getChromaAnalysisCanvas(origImg, params);
         if (params.subAnalysisMode === 'q-curve') return getQCurveCanvas(origImg, params);
         if (params.subAnalysisMode === 'iterative') return getIterativeCanvas(origImg, params);
 
         let secondImgForDiff;
-        if (params.topLevelAnalysisMode === 'ela') { secondImgForDiff = await compressImage(origImg, 95); } 
-        else { secondImgForDiff = await compressImage(origImg, params.x); }
+        if (params.topLevelAnalysisMode === 'ela') {
+            secondImgForDiff = await compressImage(origImg, 95);
+        } else { // IDA - CORRECTED LOGIC
+            // The original logic compressed to a quality of `x`, but capped at 10.
+            // This was likely a mistake. The standard interpretation is that x is the quality.
+            // Reverting to the old script's effective behavior: `x` IS the quality level for compression.
+            const quality = parseInt(params.x); 
+            secondImgForDiff = await compressImage(origImg, quality);
+        }
         return createDiffCanvas(origImg, secondImgForDiff, params);
     }
     
@@ -446,92 +501,41 @@
     async function getDoubleExposureCanvas(origImg, params) { processingIndicator.textContent = 'Double Exposure: Processing first pass (1/2)...'; const firstPassCanvas = await getAnalysisCanvas(origImg, { ...params, topLevelAnalysisMode: 'ida', subAnalysisMode: 'none', m: 1, x: 1 }); processingIndicator.textContent = 'Double Exposure: Processing second pass (2/2)...'; return await getAnalysisCanvas(firstPassCanvas, { ...params, topLevelAnalysisMode: 'ida', subAnalysisMode: 'none', m: 7, x: 6 }); }
     async function getQCurveCanvas(origImg, params) { const w = origImg.width, h = origImg.height; const qualities = (params.topLevelAnalysisMode === 'ela') ? [95, 85, 75] : [params.x, Math.max(1, params.x-10), Math.max(1, params.x-20)]; const diffs = await Promise.all([ getAnalysisCanvas(origImg, {...params, subAnalysisMode: 'none', x: qualities[0]}), getAnalysisCanvas(origImg, {...params, subAnalysisMode: 'none', x: qualities[1]}), getAnalysisCanvas(origImg, {...params, subAnalysisMode: 'none', x: qualities[2]}) ]); const datas = diffs.map(d => d.getContext('2d').getImageData(0,0,w,h).data); const finalCanvas = document.createElement('canvas'); finalCanvas.width = w; finalCanvas.height = h; const fCtx = finalCanvas.getContext('2d'); const fData = fCtx.createImageData(w,h); for(let i=0; i<fData.data.length; i+=4) { fData.data[i] = (datas[0][i] + datas[0][i+1] + datas[0][i+2])/3; fData.data[i+1] = (datas[1][i] + datas[1][i+1] + datas[1][i+2])/3; fData.data[i+2] = (datas[2][i] + datas[2][i+1] + datas[2][i+2])/3; fData.data[i+3] = 255; } fCtx.putImageData(fData,0,0); return finalCanvas; }
     async function getIterativeCanvas(origImg, params) { let qualities = []; if (params.topLevelAnalysisMode === 'ela') { qualities = [99, 95, 90, 85, 80]; } else { qualities = [80, 60, 50, 30, 20, 10, parseInt(params.x)]; } let currentImg = origImg; for (const quality of qualities) { currentImg = await compressImage(currentImg, quality); } return createDiffCanvas(origImg, currentImg, params); }
-    async function getEdgeAnalysisCanvas(origImg, params) {
-        processingIndicator.textContent = 'Edge Analysis: Detecting edges...';
-        const w = origImg.width, h = origImg.height;
-        const oCtx = document.createElement('canvas').getContext('2d'); oCtx.canvas.width = w; oCtx.canvas.height = h;
-        oCtx.drawImage(origImg, 0, 0);
-        const oData = oCtx.getImageData(0, 0, w, h);
-        const edgeData = oCtx.createImageData(w, h);
-        for (let i = 0; i < oData.data.length; i += 4) { // Grayscale
-            const avg = (oData.data[i] + oData.data[i+1] + oData.data[i+2]) / 3;
-            oData.data[i] = oData.data[i+1] = oData.data[i+2] = avg;
-        }
-        for (let y = 1; y < h - 1; y++) {
-            for (let x = 1; x < w - 1; x++) {
-                const i = (y * w + x) * 4;
-                const gx = -oData.data[i-4-w*4] - 2*oData.data[i-4] - oData.data[i-4+w*4] + oData.data[i+4-w*4] + 2*oData.data[i+4] + oData.data[i+4+w*4];
-                const gy = -oData.data[i-4-w*4] - 2*oData.data[i-w*4] - oData.data[i+4-w*4] + oData.data[i-4+w*4] + 2*oData.data[i+w*4] + oData.data[i+4+w*4];
-                const mag = Math.sqrt(gx*gx + gy*gy);
-                edgeData.data[i] = edgeData.data[i+1] = edgeData.data[i+2] = mag;
-                edgeData.data[i+3] = 255;
-            }
-        }
-        const edgeCanvas = document.createElement('canvas'); edgeCanvas.width = w; edgeCanvas.height = h;
-        edgeCanvas.getContext('2d').putImageData(edgeData, 0, 0);
-        processingIndicator.textContent = 'Edge Analysis: Analyzing edges...';
-        return await getAnalysisCanvas(edgeCanvas, {...params, subAnalysisMode: 'none'});
-    }
-    async function getChromaAnalysisCanvas(origImg, params) {
-        processingIndicator.textContent = 'Chroma Analysis: Performing initial diff...';
-        const diffCanvas = await getAnalysisCanvas(origImg, {...params, subAnalysisMode: 'none'});
-        processingIndicator.textContent = 'Chroma Analysis: Isolating color channels...';
-        const w = diffCanvas.width, h = diffCanvas.height;
-        const diffCtx = diffCanvas.getContext('2d');
-        const diffData = diffCtx.getImageData(0, 0, w, h);
-        const chromaData = diffCtx.createImageData(w, h);
-        for (let i = 0; i < diffData.data.length; i += 4) {
-            const r = diffData.data[i];
-            const g = diffData.data[i+1];
-            const b = diffData.data[i+2];
-            const luma = (r + g + b) / 3;
-            chromaData.data[i] = clamp(128 + r - luma, 0, 255);
-            chromaData.data[i+1] = clamp(128 + g - luma, 0, 255);
-            chromaData.data[i+2] = clamp(128 + b - luma, 0, 255);
-            chromaData.data[i+3] = 255;
-        }
-        const finalCanvas = document.createElement('canvas'); finalCanvas.width = w; finalCanvas.height = h;
-        finalCanvas.getContext('2d').putImageData(chromaData, 0, 0);
-        return finalCanvas;
-    }
+    async function getEdgeAnalysisCanvas(origImg, params) { processingIndicator.textContent = 'Edge Analysis: Detecting edges...'; const w = origImg.width, h = origImg.height; const oCtx = document.createElement('canvas').getContext('2d'); oCtx.canvas.width = w; oCtx.canvas.height = h; oCtx.drawImage(origImg, 0, 0); const oData = oCtx.getImageData(0, 0, w, h); const edgeData = oCtx.createImageData(w, h); for (let i = 0; i < oData.data.length; i += 4) { const avg = (oData.data[i] + oData.data[i+1] + oData.data[i+2]) / 3; oData.data[i] = oData.data[i+1] = oData.data[i+2] = avg; } for (let y = 1; y < h - 1; y++) { for (let x = 1; x < w - 1; x++) { const i = (y * w + x) * 4; const gx = -oData.data[i-4-w*4] - 2*oData.data[i-4] - oData.data[i-4+w*4] + oData.data[i+4-w*4] + 2*oData.data[i+4] + oData.data[i+4+w*4]; const gy = -oData.data[i-4-w*4] - 2*oData.data[i-w*4] - oData.data[i+4-w*4] + oData.data[i-4+w*4] + 2*oData.data[i+w*4] + oData.data[i+4+w*4]; const mag = Math.sqrt(gx*gx + gy*gy); edgeData.data[i] = edgeData.data[i+1] = edgeData.data[i+2] = mag; edgeData.data[i+3] = 255; } } const edgeCanvas = document.createElement('canvas'); edgeCanvas.width = w; edgeCanvas.height = h; edgeCanvas.getContext('2d').putImageData(edgeData, 0, 0); processingIndicator.textContent = 'Edge Analysis: Analyzing edges...'; return await getAnalysisCanvas(edgeCanvas, {...params, subAnalysisMode: 'none'}); }
+    async function getChromaAnalysisCanvas(origImg, params) { processingIndicator.textContent = 'Chroma Analysis: Performing initial diff...'; const diffCanvas = await getAnalysisCanvas(origImg, {...params, subAnalysisMode: 'none'}); processingIndicator.textContent = 'Chroma Analysis: Isolating color channels...'; const w = diffCanvas.width, h = diffCanvas.height; const diffCtx = diffCanvas.getContext('2d'); const diffData = diffCtx.getImageData(0, 0, w, h); const chromaData = diffCtx.createImageData(w, h); for (let i = 0; i < diffData.data.length; i += 4) { const r = diffData.data[i]; const g = diffData.data[i+1]; const b = diffData.data[i+2]; const luma = (r + g + b) / 3; chromaData.data[i] = clamp(128 + r - luma, 0, 255); chromaData.data[i+1] = clamp(128 + g - luma, 0, 255); chromaData.data[i+2] = clamp(128 + b - luma, 0, 255); chromaData.data[i+3] = 255; } const finalCanvas = document.createElement('canvas'); finalCanvas.width = w; finalCanvas.height = h; finalCanvas.getContext('2d').putImageData(chromaData, 0, 0); return finalCanvas; }
     
+    // CORRECTED function from the old script
+    async function createGridCanvas(img, params) {
+        const resultCanvases = [];
+        // The original grid was a fixed 1-10 degradation sweep
+        for (let x = 1; x <= 10; x++) {
+            const gridParams = { ...params, x: x, stitchDirection: 'none', subAnalysisMode: 'none' };
+            // We use getAnalysisCanvas to ensure it respects IDA mode
+            const processedCanvas = await getAnalysisCanvas(img, gridParams);
+            if (params.showDetails && params.topLevelAnalysisMode === 'ida') {
+                addDetailsText(processedCanvas.getContext('2d'), `m=${params.m}, x=${x}`, 0, 0, processedCanvas.width, processedCanvas.height);
+            }
+            resultCanvases.push(processedCanvas);
+        }
+        const gridCanvas = document.createElement('canvas');
+        gridCanvas.width = img.width * 5;
+        gridCanvas.height = img.height * 2;
+        const gridCtx = gridCanvas.getContext('2d');
+        resultCanvases.forEach((canvas, i) => {
+            const row = Math.floor(i / 5);
+            const col = i % 5;
+            gridCtx.drawImage(canvas, col * img.width, row * img.height);
+        });
+        return gridCanvas;
+    }
+
     // --- Image Composition & Main Execution Flows ---
     function stitchImage(orig, diff, direction) { if (direction === 'none') return diff; const finalCanvas = document.createElement('canvas'); const fCtx = finalCanvas.getContext('2d'); const w = orig.width, h = orig.height; switch(direction) { case 'left': finalCanvas.width = w * 2; finalCanvas.height = h; fCtx.drawImage(diff, 0, 0); fCtx.drawImage(orig, w, 0); break; case 'right': finalCanvas.width = w * 2; finalCanvas.height = h; fCtx.drawImage(orig, 0, 0); fCtx.drawImage(diff, w, 0); break; case 'top': finalCanvas.width = w; finalCanvas.height = h * 2; fCtx.drawImage(diff, 0, 0); fCtx.drawImage(orig, 0, h); break; case 'bottom': finalCanvas.width = w; finalCanvas.height = h * 2; fCtx.drawImage(orig, 0, 0); fCtx.drawImage(diff, 0, h); break; } return finalCanvas; }
     async function processSingleImageCore(img, params) { const analysisCanvas = await getAnalysisCanvas(img, params); if(params.showDetails && params.stitchDirection === 'none' && params.topLevelAnalysisMode === 'ida') { addDetailsText(analysisCanvas.getContext('2d'), `m=${params.m}, x=${params.x}`, 0, 0, analysisCanvas.width, analysisCanvas.height); } return stitchImage(img, analysisCanvas, params.stitchDirection); }
-    async function createGridCanvas(img, params) { const qualities = [80, 60, 50, 30, 20, 10, 5, 3, 2, 1]; const resultCanvases = []; for (const q of qualities) { const gridParams = { ...params, x: q, stitchDirection: 'none', subAnalysisMode: 'none' }; const processedCanvas = await getAnalysisCanvas(img, gridParams); if (params.showDetails) { addDetailsText(processedCanvas.getContext('2d'), `m=${params.m}, x=${q}`, 0, 0, processedCanvas.width, processedCanvas.height); } resultCanvases.push(processedCanvas); } const gridCanvas = document.createElement('canvas'); gridCanvas.width = img.width * 5; gridCanvas.height = img.height * 2; const gridCtx = gridCanvas.getContext('2d'); resultCanvases.forEach((canvas, i) => { const row = Math.floor(i / 5); const col = i % 5; gridCtx.drawImage(canvas, col * img.width, row * img.height); }); return gridCanvas; }
     function stitchGridWithOriginal(originalImage, gridCanvas, direction) { if (direction === 'none') return gridCanvas; const resizeToMatch = (imgToResize, refCanvas, dim) => { const canvas = document.createElement('canvas'); const aspectRatio = imgToResize.width / imgToResize.height; let newW, newH; if (dim === 'height') { newH = refCanvas.height; newW = newH * aspectRatio; } else { newW = refCanvas.width; newH = newW / aspectRatio; } canvas.width = newW; canvas.height = newH; canvas.getContext('2d').drawImage(imgToResize, 0, 0, newW, newH); return canvas; }; const resizedOriginal = resizeToMatch(originalImage, gridCanvas, (direction === 'left' || direction === 'right') ? 'height' : 'width'); const finalCanvas = document.createElement('canvas'); const fCtx = finalCanvas.getContext('2d'); if (direction === 'left' || direction === 'right') { finalCanvas.width = gridCanvas.width + resizedOriginal.width; finalCanvas.height = gridCanvas.height; if (direction === 'left') { fCtx.drawImage(resizedOriginal, 0, 0); fCtx.drawImage(gridCanvas, resizedOriginal.width, 0); } else { fCtx.drawImage(gridCanvas, 0, 0); fCtx.drawImage(resizedOriginal, gridCanvas.width, 0); } } else { finalCanvas.width = gridCanvas.width; finalCanvas.height = gridCanvas.height + resizedOriginal.height; if (direction === 'top') { fCtx.drawImage(resizedOriginal, 0, 0); fCtx.drawImage(gridCanvas, 0, resizedOriginal.height); } else { fCtx.drawImage(gridCanvas, 0, 0); fCtx.drawImage(resizedOriginal, 0, gridCanvas.height); } } return finalCanvas; }
     async function processImageFile(file, isGrid = false) { if (!file) return; setProcessingState(true, isGrid ? 'Creating Grid...' : 'Processing...'); await new Promise(r => setTimeout(r, 50)); const img = await loadImage(URL.createObjectURL(file)); const params = collectCurrentSettings(); let finalCanvas; if (isGrid) { const gridCanvas = await createGridCanvas(img, params); finalCanvas = stitchGridWithOriginal(img, gridCanvas, params.stitchDirection); } else { finalCanvas = await processSingleImageCore(img, params); } drawResult(finalCanvas); setProcessingState(false); }
     async function processBatch(isGrid) { if (loadedBatchFiles.length === 0) return; setProcessingState(true, 'Starting batch process...'); batchCanvases = []; batchSaveBtn.classList.add('hidden'); progressBar.style.width = '0%'; const maxSize = parseInt(maxSizeInput.value) || 1000; for (let i = 0; i < loadedBatchFiles.length; i++) { const file = loadedBatchFiles[i]; const progress = ((i + 1) / loadedBatchFiles.length) * 100; setProcessingState(true, `Processing ${i + 1}/${loadedBatchFiles.length}: ${file.name}`); progressBar.style.width = `${progress}%`; await new Promise(r => setTimeout(r, 20)); const originalImage = await loadImage(URL.createObjectURL(file)); const resizedImage = resizeImage(originalImage, maxSize); const params = collectCurrentSettings(); let finalCanvas; if (isGrid) { const gridCanvas = await createGridCanvas(resizedImage, params); finalCanvas = stitchGridWithOriginal(resizedImage, gridCanvas, params.stitchDirection); } else { finalCanvas = await processSingleImageCore(resizedImage, params); } const fname = file.name.split('.').slice(0, -1).join('.'); batchCanvases.push({ name: fname, canvas: finalCanvas, params: params, isGrid: isGrid }); drawResult(finalCanvas); } setProcessingState(false, 'Batch processing complete.'); processingIndicator.textContent = `${batchCanvases.length} images processed and ready to save.`; if (batchCanvases.length > 0) batchSaveBtn.classList.remove('hidden'); }
-    async function processBatchRange() {
-        if (loadedBatchFiles.length === 0) { alert('Please select one or more images for batch processing.'); return; }
-        const start = parseInt(rangeStartInput.value);
-        const end = parseInt(rangeEndInput.value);
-        if (isNaN(start) || isNaN(end) || start > end || start < 1 || end > 100) { alert('Please enter a valid range (1-100), with start <= end.'); return; }
-        setProcessingState(true, 'Starting batch range process...');
-        batchCanvases = []; batchSaveBtn.classList.add('hidden'); progressBar.style.width = '0%';
-        const maxSize = parseInt(maxSizeInput.value) || 1000;
-        const xValues = Array.from({length: end - start + 1}, (_, i) => start + i);
-        const totalJobs = loadedBatchFiles.length * xValues.length;
-        let jobsDone = 0;
-        for (const file of loadedBatchFiles) {
-            const originalImage = await loadImage(URL.createObjectURL(file));
-            const resizedImage = resizeImage(originalImage, maxSize);
-            const fname = file.name.split('.').slice(0, -1).join('.');
-            for (const x of xValues) {
-                jobsDone++;
-                const progress = (jobsDone / totalJobs) * 100;
-                setProcessingState(true, `Processing ${jobsDone}/${totalJobs}: ${fname} at x=${x}`);
-                progressBar.style.width = `${progress}%`;
-                await new Promise(r => setTimeout(r, 10));
-                const params = { ...collectCurrentSettings(), x: x, stitchDirection: 'none' };
-                const finalCanvas = await processSingleImageCore(resizedImage, params);
-                batchCanvases.push({ name: `${fname}_x${x}`, canvas: finalCanvas, params: params, isGrid: false });
-            }
-        }
-        setProcessingState(false, 'Batch range processing complete.');
-        processingIndicator.textContent = `${batchCanvases.length} images processed and ready to save.`;
-        if (batchCanvases.length > 0) batchSaveBtn.classList.remove('hidden');
-    }
+    async function processBatchRange() { if (loadedBatchFiles.length === 0) { alert('Please select one or more images for batch processing.'); return; } const start = parseInt(rangeStartInput.value); const end = parseInt(rangeEndInput.value); if (isNaN(start) || isNaN(end) || start > end || start < 1 || end > 100) { alert('Please enter a valid range (1-100), with start <= end.'); return; } setProcessingState(true, 'Starting batch range process...'); batchCanvases = []; batchSaveBtn.classList.add('hidden'); progressBar.style.width = '0%'; const maxSize = parseInt(maxSizeInput.value) || 1000; const xValues = Array.from({length: end - start + 1}, (_, i) => start + i); const totalJobs = loadedBatchFiles.length * xValues.length; let jobsDone = 0; for (const file of loadedBatchFiles) { const originalImage = await loadImage(URL.createObjectURL(file)); const resizedImage = resizeImage(originalImage, maxSize); const fname = file.name.split('.').slice(0, -1).join('.'); for (const x of xValues) { jobsDone++; const progress = (jobsDone / totalJobs) * 100; setProcessingState(true, `Processing ${jobsDone}/${totalJobs}: ${fname} at x=${x}`); progressBar.style.width = `${progress}%`; await new Promise(r => setTimeout(r, 10)); const params = { ...collectCurrentSettings(), x: x, stitchDirection: 'none' }; const finalCanvas = await processSingleImageCore(resizedImage, params); batchCanvases.push({ name: `${fname}_x${x}`, canvas: finalCanvas, params: params, isGrid: false }); } } setProcessingState(false, 'Batch range processing complete.'); processingIndicator.textContent = `${batchCanvases.length} images processed and ready to save.`; if (batchCanvases.length > 0) batchSaveBtn.classList.remove('hidden'); }
 
     // === Saving, Downloading, and Settings Profile Logic (Unchanged) ===
     function saveSingleResult() { if (!loadedFile) return; const dataURL = resultCanvas.toDataURL('image/png'); downloadDataURL(dataURL, `${originalFileName}_Forensics.png`); }
