@@ -33,7 +33,7 @@
     .dark .drop-area.drag-over {
         background-color: #2b3142;
     }
-    .button-disabled {
+    .button-disabled, input:disabled, input:disabled + label {
       opacity: 0.5;
       cursor: not-allowed;
     }
@@ -47,9 +47,9 @@
     </svg>
   </button>
   
-  <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg max-w-4xl w-full transition-colors">
+  <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg max-w-5xl w-full transition-colors">
     <div class="flex justify-between items-center mb-4">
-        <h1 class="text-3xl font-bold text-center">Image Degradation Analysis</h1>
+        <h1 class="text-3xl font-bold text-center">Image Forensics Tool</h1>
         <button id="toggleViewBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 font-bold py-2 px-4 rounded-full transition-colors text-sm">
             Switch to Batch Mode
         </button>
@@ -58,11 +58,11 @@
     <!-- ===== SINGLE FILE VIEW ===== -->
     <div id="singleFileView">
       <p class="text-center text-gray-600 dark:text-gray-400 mb-6">
-        Use this tool to analyze compression artifacts in a single image or video.
+        Use this tool to analyze compression artifacts in a single image.
       </p>
       <div id="drop-area-single" class="drop-area p-6 rounded-lg text-center mb-6">
           <label for="fileInput" class="font-semibold mb-2">Drag & Drop or Select a File:</label>
-          <input id="fileInput" type="file" accept="image/*,video/*" class="w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100 dark:file:bg-violet-800 dark:file:text-violet-200 dark:hover:file:bg-violet-700 cursor-pointer transition-colors mt-2">
+          <input id="fileInput" type="file" accept="image/*" class="w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100 dark:file:bg-violet-800 dark:file:text-violet-200 dark:hover:file:bg-violet-700 cursor-pointer transition-colors mt-2">
       </div>
     </div>
 
@@ -84,43 +84,84 @@
     
     <!-- ===== SHARED CONTROLS ===== -->
     <div id="sharedControls" class="border-t border-b border-gray-200 dark:border-gray-700 py-6 my-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
-          <div>
-            <label for="mInput" class="font-semibold mb-2 block">Factor (m): <span id="mVal" class="font-normal">4</span></label>
-            <input id="mInput" type="range" min="1" max="5" value="4" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
-          </div>
-          <div>
-            <label for="xInput" class="font-semibold mb-2 block">Degradation (x): <span id="xVal" class="font-normal">5</span></label>
-            <input id="xInput" type="range" min="1" max="10" value="5" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
-          </div>
-          <div>
-            <label class="font-semibold mb-2 block">Analysis Mode:</label>
-            <div class="flex space-x-4">
-                 <label class="flex items-center"><input type="radio" name="analysisMode" value="standard" class="w-4 h-4 mr-2 styled-radio" checked> Standard</label>
-                 <label class="flex items-center"><input type="radio" name="analysisMode" value="heatmap" class="w-4 h-4 mr-2 styled-radio"> Heatmap</label>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-6">
+          
+          <!-- Column 1: Main Analysis -->
+          <div class="space-y-4">
+             <div>
+                <label class="font-semibold mb-2 block">Analysis Mode:</label>
+                <div class="flex space-x-4">
+                     <label class="flex items-center"><input type="radio" name="topLevelAnalysisMode" value="ida" class="w-4 h-4 mr-2 styled-radio" checked> IDA</label>
+                     <label class="flex items-center"><input type="radio" name="topLevelAnalysisMode" value="ela" class="w-4 h-4 mr-2 styled-radio"> ELA</label>
+                </div>
             </div>
-             <label class="flex items-center mt-2"><input id="luminanceOnlyCheck" type="checkbox" class="w-4 h-4 mr-2 styled-checkbox">Luminance Only (Grayscale)</label>
-          </div>
-          <div>
-            <label id="stitchLabel" class="font-semibold mb-2 block">Stitch Direction:</label>
-            <div class="flex space-x-2" id="stitchControls">
-                <input type="radio" id="stitchNone" name="stitchDirection" value="none" class="hidden" checked>
-                <label for="stitchNone" title="None" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600"><span class="font-bold text-gray-800 dark:text-gray-200">X</span></label>
-                <input type="radio" id="stitchLeft" name="stitchDirection" value="left" class="hidden">
-                <label for="stitchLeft" title="Left" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></label>
-                <input type="radio" id="stitchTop" name="stitchDirection" value="top" class="hidden">
-                <label for="stitchTop" title="Top" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" /></svg></label>
-                <input type="radio" id="stitchBottom" name="stitchDirection" value="bottom" class="hidden">
-                <label for="stitchBottom" title="Bottom" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg></label>
-                <input type="radio" id="stitchRight" name="stitchDirection" value="right" class="hidden">
-                <label for="stitchRight" title="Right" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></label>
+            <div id="idaControls">
+                <div>
+                    <label for="mInput" class="font-semibold mb-2 block">Factor (m): <span id="mVal" class="font-normal">4</span></label>
+                    <input id="mInput" type="range" min="1" max="5" value="4" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                </div>
+                <div>
+                    <label for="xInput" class="font-semibold mb-2 block">Degradation (x): <span id="xVal" class="font-normal">5</span></label>
+                    <input id="xInput" type="range" min="1" max="10" value="5" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                </div>
             </div>
+          </div>
+
+          <!-- Column 2: Channel and Sub-Analysis -->
+          <div class="space-y-4">
+            <div>
+                <label class="font-semibold mb-2 block">Channel:</label>
+                <div class="grid grid-cols-2 gap-y-2 gap-x-4">
+                     <label class="flex items-center text-sm"><input type="radio" name="channelMode" value="standard" class="w-4 h-4 mr-2 styled-radio" checked> Standard</label>
+                     <label class="flex items-center text-sm"><input type="radio" name="channelMode" value="luminescence" class="w-4 h-4 mr-2 styled-radio"> Luminescence</label>
+                     <label class="flex items-center text-sm"><input type="radio" name="channelMode" value="inverted" class="w-4 h-4 mr-2 styled-radio"> Inverted</label>
+                     <label class="flex items-center text-sm"><input type="radio" name="channelMode" value="heatmap" class="w-4 h-4 mr-2 styled-radio"> Heatmap</label>
+                     <label class="flex items-center text-sm"><input type="radio" name="channelMode" value="threshold" class="w-4 h-4 mr-2 styled-radio"> Threshold</label>
+                </div>
+                <div id="thresholdContainer" class="hidden mt-2">
+                     <label for="thresholdSlider" class="text-sm font-semibold mb-1 block">Threshold: <span id="thresholdVal">30</span></label>
+                     <input id="thresholdSlider" type="range" min="1" max="255" value="30" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                </div>
+            </div>
+             <div>
+                <label class="font-semibold mb-2 block">Sub-Analysis:</label>
+                 <div class="grid grid-cols-2 gap-y-2 gap-x-4">
+                    <label class="flex items-center text-sm"><input type="radio" name="subAnalysisMode" value="none" class="w-4 h-4 mr-2 styled-radio" checked> None</label>
+                    <label class="flex items-center text-sm"><input type="radio" name="subAnalysisMode" value="level-sweep" class="w-4 h-4 mr-2 styled-radio"> Level Sweep</label>
+                    <label class="flex items-center text-sm"><input type="radio" name="subAnalysisMode" value="q-curve" class="w-4 h-4 mr-2 styled-radio"> Q-Curve</label>
+                    <label class="flex items-center text-sm"><input type="radio" name="subAnalysisMode" value="iterative" class="w-4 h-4 mr-2 styled-radio"> Iterative</label>
+                    <label class="flex items-center text-sm"><input type="radio" name="subAnalysisMode" value="noise-analysis" class="w-4 h-4 mr-2 styled-radio"> Noise Analysis</label>
+                </div>
+                <div id="iterativeContainer" class="hidden mt-2">
+                     <label for="iterativeSlider" class="text-sm font-semibold mb-1 block">Iterations: <span id="iterativeVal">3</span></label>
+                     <input id="iterativeSlider" type="range" min="2" max="10" value="3" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                </div>
+            </div>
+          </div>
+          
+          <!-- Column 3: Stitching and Details -->
+          <div class="space-y-4">
+             <div>
+                <label id="stitchLabel" class="font-semibold mb-2 block">Stitch Direction:</label>
+                <div class="flex space-x-2" id="stitchControls">
+                    <input type="radio" id="stitchNone" name="stitchDirection" value="none" class="hidden" checked>
+                    <label for="stitchNone" title="None" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600"><span class="font-bold text-gray-800 dark:text-gray-200">X</span></label>
+                    <input type="radio" id="stitchLeft" name="stitchDirection" value="left" class="hidden">
+                    <label for="stitchLeft" title="Left" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></label>
+                    <input type="radio" id="stitchTop" name="stitchDirection" value="top" class="hidden">
+                    <label for="stitchTop" title="Top" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" /></svg></label>
+                    <input type="radio" id="stitchBottom" name="stitchDirection" value="bottom" class="hidden">
+                    <label for="stitchBottom" title="Bottom" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg></label>
+                    <input type="radio" id="stitchRight" name="stitchDirection" value="right" class="hidden">
+                    <label for="stitchRight" title="Right" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></label>
+                </div>
+              </div>
+               <div class="flex items-center">
+                <input id="detailsCheck" type="checkbox" class="w-4 h-4 mr-2 styled-checkbox">
+                <label for="detailsCheck">Show details on photo?</label>
+              </div>
           </div>
         </div>
-         <div class="flex items-center justify-center mt-4">
-            <input id="detailsCheck" type="checkbox" class="w-4 h-4 mr-2 styled-checkbox">
-            <label for="detailsCheck">Show details on photo?</label>
-          </div>
     </div>
     
     <!-- ===== ACTION BUTTONS ===== -->
@@ -148,8 +189,8 @@
                 <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg space-y-4">
                     <div>
                         <label for="namingPatternInput" class="font-semibold mb-2 block">File Naming Pattern:</label>
-                        <input id="namingPatternInput" type="text" value="{fname}-{mode}-factor{m}-degradation{x}" class="w-full bg-gray-200 dark:bg-gray-600 rounded-md p-2 text-sm">
-                        <p class="text-xs text-gray-500 mt-1">Use: {fname}, {mode}, {m}, {x}</p>
+                        <input id="namingPatternInput" type="text" value="{fname}-{mode}-{channel}-{sub}" class="w-full bg-gray-200 dark:bg-gray-600 rounded-md p-2 text-sm">
+                        <p class="text-xs text-gray-500 mt-1">Use: {fname}, {mode}, {channel}, {sub}, {iterations}, {m}, {x}</p>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
                         <div>
@@ -204,7 +245,6 @@
     const mVal = document.getElementById('mVal');
     const xVal = document.getElementById('xVal');
     const detailsCheck = document.getElementById('detailsCheck');
-    const luminanceOnlyCheck = document.getElementById('luminanceOnlyCheck');
     const processBtn = document.getElementById('processBtn');
     const gridBtn = document.getElementById('gridBtn');
     const standardBtn = document.getElementById('standardBtn');
@@ -228,6 +268,16 @@
     const maxSizeInput = document.getElementById('maxSizeInput');
     const fileList = document.getElementById('fileList');
     const stitchLabel = document.getElementById('stitchLabel');
+    const idaControls = document.getElementById('idaControls');
+    // New/Experimental Elements
+    const thresholdContainer = document.getElementById('thresholdContainer');
+    const thresholdSlider = document.getElementById('thresholdSlider');
+    const thresholdVal = document.getElementById('thresholdVal');
+    const iterativeContainer = document.getElementById('iterativeContainer');
+    const iterativeSlider = document.getElementById('iterativeSlider');
+    const iterativeVal = document.getElementById('iterativeVal');
+
+
     // Advanced Settings Elements
     const advancedSettingsCheck = document.getElementById('advancedSettingsCheck');
     const advancedSettingsContainer = document.getElementById('advancedSettingsContainer');
@@ -245,10 +295,7 @@
     let loadedFile = null;
     let loadedBatchFiles = [];
     let originalFileName = '';
-    let processedFrames = [];
     let batchCanvases = [];
-    let isVideo = false;
-    let isBatchMode = false;
     
     // === Event Listeners ===
     const allInputs = document.querySelectorAll('input, select');
@@ -258,8 +305,7 @@
 
     // --- UI Mode Toggle ---
     toggleViewBtn.addEventListener('click', () => {
-        isBatchMode = !isBatchMode;
-        singleFileView.classList.toggle('hidden');
+        const isBatchMode = singleFileView.classList.toggle('hidden');
         batchView.classList.toggle('hidden');
         singleFileButtons.classList.toggle('hidden');
         batchButtons.classList.toggle('hidden');
@@ -284,15 +330,7 @@
         if (!file) return;
         loadedFile = file;
         originalFileName = file.name.split('.').slice(0, -1).join('.');
-        if (file.type.startsWith('image/')) {
-            isVideo = false;
-            processBtn.textContent = 'Process Image'; saveBtn.textContent = 'Save';
-            await processImageFile(loadedFile);
-        } else if (file.type.startsWith('video/')) {
-            isVideo = true;
-            processBtn.textContent = 'Process Video'; saveBtn.textContent = 'Save Frames';
-            setProcessingState(false); clearCanvas();
-        }
+        await processImageFile(loadedFile);
     }
 
     function handleBatchFiles(files) {
@@ -305,17 +343,27 @@
     }
     
     // --- Processing Buttons ---
-    processBtn.addEventListener('click', async () => {
-      if (!loadedFile) return;
-      if (isVideo) { await processVideoFile(loadedFile); } 
-      else { await processImageFile(loadedFile); }
-    });
-    gridBtn.addEventListener('click', () => processImageFile(loadedFile, true));
+    processBtn.addEventListener('click', async () => { if (loadedFile) await processImageFile(loadedFile); });
+    gridBtn.addEventListener('click', () => { if (loadedFile) processImageFile(loadedFile, true); });
+    
     standardBtn.addEventListener('click', async () => {
-        if (!loadedFile || isVideo) return;
+        if (!loadedFile) return;
+        
+        // Reset settings
+        document.querySelector('input[name="topLevelAnalysisMode"][value="ida"]').checked = true;
+        document.querySelector('input[name="channelMode"][value="standard"]').checked = true;
+        document.querySelector('input[name="subAnalysisMode"][value="none"]').checked = true;
+        
+        // Trigger change events to update UI
+        document.querySelector('input[name="topLevelAnalysisMode"]:checked').dispatchEvent(new Event('change'));
+        document.querySelector('input[name="channelMode"]:checked').dispatchEvent(new Event('change'));
+        document.querySelector('input[name="subAnalysisMode"]:checked').dispatchEvent(new Event('change'));
+        
         mInput.value = 4; xInput.value = 5; mVal.textContent = 4; xVal.textContent = 5;
+        
         await processImageFile(loadedFile);
     });
+
     batchProcessStandardBtn.addEventListener('click', () => processBatch(false));
     batchProcessGridBtn.addEventListener('click', () => processBatch(true));
 
@@ -338,8 +386,36 @@
     }
 
 
-    // --- Advanced Settings Listeners ---
+    // --- Advanced/Experimental Settings Listeners ---
     advancedSettingsCheck.addEventListener('change', () => advancedSettingsContainer.classList.toggle('hidden', !advancedSettingsCheck.checked));
+    
+    document.querySelectorAll('input[name="topLevelAnalysisMode"]').forEach(radio => {
+        radio.addEventListener('change', e => {
+            const isELA = e.target.value === 'ela';
+            idaControls.classList.toggle('button-disabled', isELA);
+            mInput.disabled = isELA;
+            xInput.disabled = isELA;
+            gridBtn.disabled = isELA;
+            batchProcessGridBtn.disabled = isELA;
+        });
+    });
+
+    document.querySelectorAll('input[name="channelMode"]').forEach(radio => {
+        radio.addEventListener('change', e => {
+            const mode = e.target.value;
+            thresholdContainer.classList.toggle('hidden', mode !== 'threshold');
+        });
+    });
+     document.querySelectorAll('input[name="subAnalysisMode"]').forEach(radio => {
+        radio.addEventListener('change', e => {
+            const mode = e.target.value;
+            iterativeContainer.classList.toggle('hidden', mode !== 'iterative');
+        });
+    });
+
+    thresholdSlider.addEventListener('input', () => { thresholdVal.textContent = thresholdSlider.value; });
+    iterativeSlider.addEventListener('input', () => { iterativeVal.textContent = iterativeSlider.value; });
+
     reduceSizeSlider.addEventListener('input', () => { reduceSizeVal.textContent = reduceSizeSlider.value; });
     jpgQualitySlider.addEventListener('input', () => { jpgQualityVal.textContent = jpgQualitySlider.value; });
     document.querySelectorAll('input[name="fileFormat"]').forEach(radio => {
@@ -360,7 +436,13 @@
         btn.disabled = isProcessing;
         btn.classList.toggle('button-disabled', isProcessing);
       });
-      progressBarContainer.classList.toggle('hidden', !isProcessing || !isBatchMode);
+      // Re-apply ELA grid disabling after a general state change
+      if (!isProcessing) {
+          const isELA = document.querySelector('input[name="topLevelAnalysisMode"]:checked').value === 'ela';
+          gridBtn.disabled = isELA;
+          batchProcessGridBtn.disabled = isELA;
+      }
+      progressBarContainer.classList.toggle('hidden', !isProcessing || !batchView.classList.contains('hidden'));
       if(!isProcessing) progressBar.style.width = '0%';
     }
     
@@ -424,7 +506,7 @@
         ctx.strokeText(text, textX, textY);
         ctx.fillText(text, textX, textY);
     }
-
+    
     async function compressImage(img, quality) {
         const canvas = document.createElement('canvas');
         canvas.width = img.width; canvas.height = img.height;
@@ -434,60 +516,114 @@
         return await loadImage(dataUrl);
     }
 
-    function createDiff(origImg, compImg, params) {
-        const { m, x, analysisMode, luminanceOnly } = params;
-        const sFactor = m * (x * 5) * 47;
-        const w = origImg.width, h = origImg.height;
-        
+    async function getDiffCanvas(origImg, params) {
+        const { topLevelAnalysisMode, m, x, subAnalysisMode } = params;
+       
+        if(subAnalysisMode === 'q-curve') {
+             return getQCurveCanvas(origImg, params);
+        }
+        if(subAnalysisMode === 'iterative') {
+            return getIterativeCanvas(origImg, params);
+        }
+
+        let firstImgForDiff = origImg;
+        let secondImgForDiff;
+       
+        if(topLevelAnalysisMode === 'ela') {
+             secondImgForDiff = await compressImage(origImg, 95);
+        } else { // IDA
+             const quality = Math.min(10, x);
+             secondImgForDiff = await compressImage(origImg, quality);
+        }
+
+        return createFinalCanvas(firstImgForDiff, secondImgForDiff, params);
+    }
+
+    function createFinalCanvas(img1, img2, params) {
+        const w = img1.width, h = img1.height;
         const oCanvas = document.createElement('canvas'); oCanvas.width = w; oCanvas.height = h;
-        const oCtx = oCanvas.getContext('2d'); oCtx.drawImage(origImg, 0, 0);
+        const oCtx = oCanvas.getContext('2d'); oCtx.drawImage(img1, 0, 0);
         const oData = oCtx.getImageData(0, 0, w, h).data;
 
         const cCanvas = document.createElement('canvas'); cCanvas.width = w; cCanvas.height = h;
-        const cCtx = cCanvas.getContext('2d'); cCtx.drawImage(compImg, 0, 0);
+        const cCtx = cCanvas.getContext('2d'); cCtx.drawImage(img2, 0, 0);
         const cData = cCtx.getImageData(0, 0, w, h).data;
-
-        const dCanvas = document.createElement('canvas'); dCanvas.width = w; dCanvas.height = h;
-        const dCtx = dCanvas.getContext('2d');
+        
+        const diffCanvas = document.createElement('canvas'); diffCanvas.width = w; diffCanvas.height = h;
+        const dCtx = diffCanvas.getContext('2d');
         const diffData = dCtx.createImageData(w, h);
-        const dArr = diffData.data;
+        
+        processAnalysisModes(oData, cData, diffData.data, w, h, params);
+        dCtx.putImageData(diffData, 0, 0);
+        return diffCanvas;
+    }
 
+
+    function processAnalysisModes(oData, cData, dArr, w, h, params) {
+        const { topLevelAnalysisMode, channelMode, m, x, threshold } = params;
+        const sFactor = (topLevelAnalysisMode === 'ela') ? (7*25) : (m * (x * 5) * 47);
+        
         let maxDiff = 0;
         for (let i = 0; i < oData.length; i += 4) {
-            const rDiff = Math.abs(oData[i] - cData[i]);
-            const gDiff = Math.abs(oData[i + 1] - cData[i + 1]);
-            const bDiff = Math.abs(oData[i + 2] - cData[i + 2]);
-            if (luminanceOnly) {
-                 const oLum = 0.299 * oData[i] + 0.587 * oData[i+1] + 0.114 * oData[i+2];
-                 const cLum = 0.299 * cData[i] + 0.587 * cData[i+1] + 0.114 * cData[i+2];
-                 maxDiff = Math.max(maxDiff, Math.abs(oLum - cLum));
-            } else { maxDiff = Math.max(maxDiff, rDiff, gDiff, bDiff); }
+            maxDiff = Math.max(maxDiff, Math.abs(oData[i] - cData[i]), Math.abs(oData[i + 1] - cData[i + 1]), Math.abs(oData[i + 2] - cData[i + 2]));
         }
         const scale = sFactor / (maxDiff || 1);
 
+        // Apply Channel Mode
         for (let i = 0; i < oData.length; i += 4) {
             let r = Math.abs(oData[i] - cData[i]);
             let g = Math.abs(oData[i+1] - cData[i+1]);
             let b = Math.abs(oData[i+2] - cData[i+2]);
-            if (luminanceOnly) {
-                const oLum = 0.299 * oData[i] + 0.587 * oData[i+1] + 0.114 * oData[i+2];
-                const cLum = 0.299 * cData[i] + 0.587 * cData[i+1] + 0.114 * cData[i+2];
-                r = g = b = Math.abs(oLum - cLum);
-            }
-            if (analysisMode === 'heatmap') {
-                const intensity = clamp((r + g + b) / 3 * scale / 255, 0, 1);
-                dArr[i] = clamp(255 * Math.sqrt(intensity), 0, 255);
-                dArr[i+1] = clamp(255 * (1 - Math.abs(intensity - 0.5) * 2), 0, 255);
-                dArr[i+2] = clamp(255 * Math.sqrt(1 - intensity), 0, 255);
-            } else {
-                dArr[i] = clamp(r * scale, 0, 255);
-                dArr[i+1] = clamp(g * scale, 0, 255);
-                dArr[i+2] = clamp(b * scale, 0, 255);
+            
+            switch(channelMode) {
+                case 'standard': dArr[i] = clamp(r*scale,0,255); dArr[i+1]=clamp(g*scale,0,255); dArr[i+2]=clamp(b*scale,0,255); break;
+                case 'luminescence': const lum=(r+g+b)/3; dArr[i]=dArr[i+1]=dArr[i+2]=clamp(lum*scale,0,255); break;
+                case 'inverted': dArr[i]=255-clamp(r*scale,0,255); dArr[i+1]=255-clamp(g*scale,0,255); dArr[i+2]=255-clamp(b*scale,0,255); break;
+                case 'heatmap': 
+                    const intensity = clamp((r+g+b)/3*scale/255,0,1); 
+                    dArr[i]=clamp(255*Math.sqrt(intensity),0,255); 
+                    dArr[i+1]=clamp(255*(1-Math.abs(intensity-0.5)*2),0,255); 
+                    dArr[i+2]=clamp(255*Math.sqrt(1-intensity),0,255); 
+                    break;
+                case 'threshold': const a=(r+g+b)/3; dArr[i]=dArr[i+1]=dArr[i+2]=(a>threshold?255:0); break;
             }
             dArr[i+3] = 255;
         }
-        dCtx.putImageData(diffData, 0, 0);
-        return dCanvas;
+    }
+    
+    async function getQCurveCanvas(origImg, params) {
+        const w = origImg.width, h = origImg.height;
+        const qualities = (params.topLevelAnalysisMode === 'ela') ? [95, 85, 75] : [params.x, Math.max(1, params.x-2), Math.max(1, params.x-4)];
+
+        const diff1 = await getDiffCanvas(origImg, {...params, subAnalysisMode: 'none', x: qualities[0]});
+        const diff2 = await getDiffCanvas(origImg, {...params, subAnalysisMode: 'none', x: qualities[1]});
+        const diff3 = await getDiffCanvas(origImg, {...params, subAnalysisMode: 'none', x: qualities[2]});
+
+        const ctx1 = diff1.getContext('2d'); const data1 = ctx1.getImageData(0,0,w,h).data;
+        const ctx2 = diff2.getContext('2d'); const data2 = ctx2.getImageData(0,0,w,h).data;
+        const ctx3 = diff3.getContext('2d'); const data3 = ctx3.getImageData(0,0,w,h).data;
+        
+        const finalCanvas = document.createElement('canvas'); finalCanvas.width = w; finalCanvas.height = h;
+        const fCtx = finalCanvas.getContext('2d');
+        const fData = fCtx.createImageData(w,h);
+        for(let i=0; i<fData.data.length; i+=4) {
+            fData.data[i] = (data1[i] + data1[i+1] + data1[i+2])/3; // R from first diff
+            fData.data[i+1] = (data2[i] + data2[i+1] + data2[i+2])/3; // G from second diff
+            fData.data[i+2] = (data3[i] + data3[i+1] + data3[i+2])/3; // B from third diff
+            fData.data[i+3] = 255;
+        }
+        fCtx.putImageData(fData,0,0);
+        return finalCanvas;
+    }
+    
+    async function getIterativeCanvas(origImg, params) {
+        let currentImg = origImg;
+        let diffCanvas;
+        for(let i=0; i<params.iterations; i++) {
+            diffCanvas = await getDiffCanvas(currentImg, {...params, subAnalysisMode: 'none'});
+            currentImg = diffCanvas; // The output of one iteration is the input for the next
+        }
+        return diffCanvas;
     }
 
     function stitchImage(orig, diff, direction) {
@@ -495,29 +631,17 @@
         const fCtx = finalCanvas.getContext('2d');
         const w = orig.width, h = orig.height;
         switch(direction) {
-            case 'left':
-                finalCanvas.width = w * 2; finalCanvas.height = h;
-                fCtx.drawImage(diff, 0, 0); fCtx.drawImage(orig, w, 0); break;
-            case 'right':
-                finalCanvas.width = w * 2; finalCanvas.height = h;
-                fCtx.drawImage(orig, 0, 0); fCtx.drawImage(diff, w, 0); break;
-            case 'top':
-                finalCanvas.width = w; finalCanvas.height = h * 2;
-                fCtx.drawImage(diff, 0, 0); fCtx.drawImage(orig, 0, h); break;
-            case 'bottom':
-                finalCanvas.width = w; finalCanvas.height = h * 2;
-                fCtx.drawImage(orig, 0, 0); fCtx.drawImage(diff, 0, h); break;
-            default:
-                finalCanvas.width = diff.width; finalCanvas.height = diff.height;
-                fCtx.drawImage(diff, 0, 0); break;
+            case 'left': finalCanvas.width = w * 2; finalCanvas.height = h; fCtx.drawImage(diff, 0, 0); fCtx.drawImage(orig, w, 0); break;
+            case 'right': finalCanvas.width = w * 2; finalCanvas.height = h; fCtx.drawImage(orig, 0, 0); fCtx.drawImage(diff, w, 0); break;
+            case 'top': finalCanvas.width = w; finalCanvas.height = h * 2; fCtx.drawImage(diff, 0, 0); fCtx.drawImage(orig, 0, h); break;
+            case 'bottom': finalCanvas.width = w; finalCanvas.height = h * 2; fCtx.drawImage(orig, 0, 0); fCtx.drawImage(diff, 0, h); break;
+            default: finalCanvas.width = diff.width; finalCanvas.height = diff.height; fCtx.drawImage(diff, 0, 0); break;
         }
         return finalCanvas;
     }
 
     async function processSingleImageCore(img, params) {
-        const quality = Math.min(10, params.x);
-        const compImg = await compressImage(img, quality);
-        const diffCanvas = createDiff(img, compImg, params);
+        const diffCanvas = await getDiffCanvas(img, params);
         return stitchImage(img, diffCanvas, params.stitchDirection);
     }
     
@@ -525,8 +649,8 @@
         const resultCanvases = [];
         for (let x = 1; x <= 10; x++) {
             const gridParams = { ...params, x: x, stitchDirection: 'none' };
-            const processedCanvas = await processSingleImageCore(img, gridParams);
-            if (params.showDetails) {
+            const processedCanvas = await getDiffCanvas(img, gridParams);
+            if (params.showDetails && params.topLevelAnalysisMode !== 'ela') {
                 addDetailsText(processedCanvas.getContext('2d'), `factor=${params.m}, degradation=${x}`, 0, 0, processedCanvas.width, processedCanvas.height);
             }
             resultCanvases.push(processedCanvas);
@@ -583,14 +707,18 @@
         if(!file) return;
         setProcessingState(true, isGrid ? 'Creating Grid...' : 'Processing...');
         
-        await new Promise(r => setTimeout(r, 50)); // Allow UI to update
+        await new Promise(r => setTimeout(r, 50));
         
         const img = await loadImage(URL.createObjectURL(file));
         const params = {
+            topLevelAnalysisMode: document.querySelector('input[name="topLevelAnalysisMode"]:checked').value,
             m: parseInt(mInput.value), x: parseInt(xInput.value),
             stitchDirection: document.querySelector('input[name="stitchDirection"]:checked').value,
-            analysisMode: document.querySelector('input[name="analysisMode"]:checked').value,
-            luminanceOnly: luminanceOnlyCheck.checked, showDetails: detailsCheck.checked,
+            channelMode: document.querySelector('input[name="channelMode"]:checked').value,
+            subAnalysisMode: document.querySelector('input[name="subAnalysisMode"]:checked').value,
+            showDetails: detailsCheck.checked,
+            threshold: parseInt(thresholdSlider.value),
+            iterations: parseInt(iterativeSlider.value)
         };
         
         let finalCanvas;
@@ -599,7 +727,7 @@
             finalCanvas = stitchGridWithOriginal(img, gridCanvas, params.stitchDirection);
         } else {
             finalCanvas = await processSingleImageCore(img, params);
-            if(params.showDetails && params.stitchDirection === 'none') {
+            if(params.showDetails && params.stitchDirection === 'none' && params.topLevelAnalysisMode !== 'ela') {
                  addDetailsText(finalCanvas.getContext('2d'), `factor=${params.m}, degradation=${params.x}`, 0, 0, finalCanvas.width, finalCanvas.height);
             }
         }
@@ -622,16 +750,20 @@
             setProcessingState(true, `Processing ${i + 1} of ${loadedBatchFiles.length}: ${file.name}`);
             progressBar.style.width = `${progress}%`;
 
-            await new Promise(r => setTimeout(r, 20)); // Allow UI to update
+            await new Promise(r => setTimeout(r, 20));
             
             const originalImage = await loadImage(URL.createObjectURL(file));
             const resizedImage = resizeImage(originalImage, maxSize);
             
             const params = {
+                topLevelAnalysisMode: document.querySelector('input[name="topLevelAnalysisMode"]:checked').value,
                 m: parseInt(mInput.value), x: parseInt(xInput.value),
                 stitchDirection: document.querySelector('input[name="stitchDirection"]:checked').value,
-                analysisMode: document.querySelector('input[name="analysisMode"]:checked').value,
-                luminanceOnly: luminanceOnlyCheck.checked, showDetails: detailsCheck.checked,
+                channelMode: document.querySelector('input[name="channelMode"]:checked').value,
+                subAnalysisMode: document.querySelector('input[name="subAnalysisMode"]:checked').value,
+                showDetails: detailsCheck.checked,
+                threshold: parseInt(thresholdSlider.value),
+                iterations: parseInt(iterativeSlider.value)
             };
             
             let finalCanvas;
@@ -640,7 +772,7 @@
                 finalCanvas = stitchGridWithOriginal(resizedImage, gridCanvas, params.stitchDirection);
             } else {
                 finalCanvas = await processSingleImageCore(resizedImage, params);
-                 if(params.showDetails && params.stitchDirection === 'none') {
+                 if(params.showDetails && params.stitchDirection === 'none' && params.topLevelAnalysisMode !== 'ela') {
                     addDetailsText(finalCanvas.getContext('2d'), `factor=${params.m}, degradation=${params.x}`, 0, 0, finalCanvas.width, finalCanvas.height);
                 }
             }
@@ -652,7 +784,7 @@
         }
 
         setProcessingState(false, 'Batch processing complete.');
-        processingIndicator.textContent = `${batchCanvases.length} images processed and ready to save.`;
+        processingIndicator.textContent = `${batchCanvases.length} images processed and are ready to save.`;
         if (batchCanvases.length > 0) {
             batchSaveBtn.classList.remove('hidden');
         }
@@ -661,11 +793,8 @@
     // --- Saving Functions ---
     async function saveSingleResult() {
         if (!loadedFile) return;
-        if (isVideo) { /* Video saving logic here */ } 
-        else {
-            const dataURL = resultCanvas.toDataURL('image/png');
-            downloadDataURL(dataURL, `${originalFileName}_IDA.png`);
-        }
+        const dataURL = resultCanvas.toDataURL('image/png');
+        downloadDataURL(dataURL, `${originalFileName}_Forensics.png`);
     }
     
     async function saveBatchResults() {
@@ -681,12 +810,19 @@
         
         const getFinalFileName = (item) => {
             if(!useAdvanced) return `${item.name}.${format}`;
-            const pattern = namingPatternInput.value;
-            return pattern.replace('{fname}', item.name.replace(`_${item.params.isGrid ? 'grid' : 'standard'}`, ''))
-                          .replace('{mode}', item.params.isGrid ? 'grid' : 'standard')
+            let pattern = namingPatternInput.value;
+            pattern = pattern.replace('{fname}', item.name.replace(`_${item.params.isGrid ? 'grid' : 'standard'}`, ''))
+                          .replace('{mode}', item.params.topLevelAnalysisMode)
+                          .replace('{channel}', item.params.channelMode)
+                          .replace('{sub}', item.params.subAnalysisMode)
                           .replace(/{m}|{factor}/g, item.params.m)
-                          .replace(/{x}|{degradation}/g, item.params.x)
-                          + `.${format}`;
+                          .replace(/{x}|{degradation}/g, item.params.x);
+            if (item.params.subAnalysisMode === 'iterative') {
+                 pattern = pattern.replace('{iterations}', item.params.iterations);
+            } else {
+                 pattern = pattern.replace('-{iterations}','').replace('{iterations}','');
+            }
+            return pattern + `.${format}`;
         };
 
         const getOutputFile = (item) => {
@@ -749,10 +885,12 @@
     function saveSettings() {
         try {
             const settings = {
+                topLevelAnalysisMode: document.querySelector('input[name="topLevelAnalysisMode"]:checked').value,
                 m: mInput.value,
                 x: xInput.value,
-                analysisMode: document.querySelector('input[name="analysisMode"]:checked').value,
-                luminanceOnly: luminanceOnlyCheck.checked,
+                channelMode: document.querySelector('input[name="channelMode"]:checked').value,
+                subAnalysisMode: document.querySelector('input[name="subAnalysisMode"]:checked').value,
+                iterations: iterativeSlider.value,
                 stitchDirection: document.querySelector('input[name="stitchDirection"]:checked').value,
                 showDetails: detailsCheck.checked,
                 maxSize: maxSizeInput.value,
@@ -764,11 +902,10 @@
                 stripExif: stripExifCheck.checked,
                 downloadType: document.querySelector('input[name="downloadType"]:checked').value,
                 darkMode: document.documentElement.classList.contains('dark'),
+                threshold: thresholdSlider.value,
             };
             localStorage.setItem('idaSettings', JSON.stringify(settings));
-        } catch (e) {
-            console.error("Could not save settings to localStorage.", e);
-        }
+        } catch (e) { console.error("Could not save settings.", e); }
     }
 
     function loadSettings() {
@@ -776,11 +913,13 @@
             const settingsJSON = localStorage.getItem('idaSettings');
             if (!settingsJSON) return;
             const settings = JSON.parse(settingsJSON);
-
+            
+            document.querySelector(`input[name="topLevelAnalysisMode"][value="${settings.topLevelAnalysisMode || 'ida'}"]`).checked = true;
             mInput.value = settings.m; mVal.textContent = settings.m;
             xInput.value = settings.x; xVal.textContent = settings.x;
-            document.querySelector(`input[name="analysisMode"][value="${settings.analysisMode}"]`).checked = true;
-            luminanceOnlyCheck.checked = settings.luminanceOnly;
+            document.querySelector(`input[name="channelMode"][value="${settings.channelMode || 'standard'}"]`).checked = true;
+            document.querySelector(`input[name="subAnalysisMode"][value="${settings.subAnalysisMode || 'none'}"]`).checked = true;
+            iterativeSlider.value = settings.iterations || 3; iterativeVal.textContent = settings.iterations || 3;
             document.querySelector(`input[name="stitchDirection"][value="${settings.stitchDirection}"]`).checked = true;
             detailsCheck.checked = settings.showDetails;
             maxSizeInput.value = settings.maxSize;
@@ -791,6 +930,7 @@
             jpgQualitySlider.value = settings.quality; jpgQualityVal.textContent = settings.quality;
             stripExifCheck.checked = settings.stripExif;
             document.querySelector(`input[name="downloadType"][value="${settings.downloadType}"]`).checked = true;
+            thresholdSlider.value = settings.threshold || 30; thresholdVal.textContent = settings.threshold || 30;
             
             if (settings.darkMode) { document.documentElement.classList.add('dark'); } 
             else { document.documentElement.classList.remove('dark'); }
@@ -800,9 +940,24 @@
             jpgQualityContainer.classList.toggle('hidden', settings.format !== 'jpg');
             zipWarning.classList.toggle('hidden', settings.downloadType !== 'zip');
             batchSaveBtn.textContent = settings.downloadType === 'zip' ? 'Save as ZIP' : 'Save All Individually';
+            
+            const mode = settings.topLevelAnalysisMode || 'ida';
+            const isELA = mode === 'ela';
+            idaControls.classList.toggle('button-disabled', isELA);
+            mInput.disabled = isELA;
+            xInput.disabled = isELA;
+            gridBtn.disabled = isELA;
+            batchProcessGridBtn.disabled = isELA;
+
+            const currentChannelMode = document.querySelector('input[name="channelMode"]:checked').value;
+            thresholdContainer.classList.toggle('hidden', currentChannelMode !== 'threshold');
+
+            const currentSubMode = document.querySelector('input[name="subAnalysisMode"]:checked').value;
+            iterativeContainer.classList.toggle('hidden', currentSubMode !== 'iterative');
+
         } catch (e) {
-            console.error("Could not load settings from localStorage.", e);
-            localStorage.removeItem('idaSettings'); // Clear corrupted settings
+            console.error("Could not load settings.", e);
+            localStorage.removeItem('idaSettings');
         }
     }
     
