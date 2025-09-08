@@ -1,284 +1,328 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Image Degradation Analysis</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- JSZip for creating and downloading ZIP files -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"></script>
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-    }
-    /* Custom styles for form elements */
-    .styled-checkbox:checked {
-        background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
-        background-color: #4f46e5;
-        border-color: #4f46e5;
-    }
-    .styled-radio:checked {
-        background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
-        background-color: #4f46e5;
-        border-color: #4f46e5;
-    }
-    .drop-area {
-      border: 2px dashed #d1d5db;
-      transition: border-color 0.2s, background-color 0.2s;
-    }
-    .drop-area.drag-over {
-      border-color: #6366f1;
-      background-color: #f0f1ff;
-    }
-    .dark .drop-area.drag-over {
-        background-color: #2b3142;
-    }
-    .button-disabled, input:disabled, input:disabled + label {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Forensics Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom styles for form elements */
+        .styled-checkbox:checked {
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+            background-color: #4f46e5;
+            border-color: #4f46e5;
+        }
+        .styled-radio:checked {
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
+            background-color: #4f46e5;
+            border-color: #4f46e5;
+        }
+        .drop-area {
+            border: 2px dashed #d1d5db;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+        .drop-area.drag-over {
+            border-color: #6366f1;
+            background-color: #f0f1ff;
+        }
+        .dark .drop-area.drag-over {
+            background-color: #2b3142;
+        }
+        .control-disabled, .control-disabled label {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        /* Basic styling for rendered markdown content */
+        .prose h1, .prose h2, .prose h3 { font-weight: 600; margin-top: 1.2em; margin-bottom: 0.5em; }
+        .prose h1 { font-size: 1.875rem; }
+        .prose h2 { font-size: 1.5rem; }
+        .prose h3 { font-size: 1.25rem; }
+        .prose p { margin-bottom: 1em; line-height: 1.6; }
+        .prose ul, .prose ol { margin-left: 1.5em; margin-bottom: 1em; }
+        .prose li { margin-bottom: 0.5em; }
+        .prose a { color: #4f46e5; text-decoration: underline; }
+        .prose code { background-color: #e5e7eb; padding: 0.2em 0.4em; border-radius: 3px; font-family: monospace; }
+        .dark .prose a { color: #a5b4fc; }
+        .dark .prose code { background-color: #374151; }
+    </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col items-center justify-center p-4 transition-colors">
-  
-  <button id="darkModeToggle" class="fixed top-4 right-4 p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition-colors shadow">
-    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="darkModeIcon">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-    </svg>
-  </button>
-  
-  <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg max-w-5xl w-full transition-colors">
-    <div class="flex justify-between items-center mb-4">
-        <h1 class="text-3xl font-bold text-center">Image Forensics Tool</h1>
-        <button id="toggleViewBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 font-bold py-2 px-4 rounded-full transition-colors text-sm">
-            Switch to Batch Mode
-        </button>
-    </div>
-
-    <!-- ===== SINGLE FILE VIEW ===== -->
-    <div id="singleFileView">
-      <p class="text-center text-gray-600 dark:text-gray-400 mb-6">
-        Use this tool to analyze compression artifacts in a single image.
-      </p>
-      <div id="drop-area-single" class="drop-area p-6 rounded-lg text-center mb-6">
-          <label for="fileInput" class="font-semibold mb-2">Drag & Drop or Select a File:</label>
-          <input id="fileInput" type="file" accept="image/*" class="w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100 dark:file:bg-violet-800 dark:file:text-violet-200 dark:hover:file:bg-violet-700 cursor-pointer transition-colors mt-2">
-      </div>
-    </div>
-
-    <!-- ===== BATCH PROCESSING VIEW ===== -->
-    <div id="batchView" class="hidden">
-        <p class="text-center text-gray-600 dark:text-gray-400 mb-6">
-            Process multiple images at once. All images will be resized before processing.
-        </p>
-        <div id="drop-area-batch" class="drop-area p-6 rounded-lg text-center mb-4">
-            <label for="batchFileInput" class="font-semibold mb-2">Drag & Drop or Select Multiple Images:</label>
-            <input id="batchFileInput" type="file" accept="image/*" multiple class="w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100 dark:file:bg-violet-800 dark:file:text-violet-200 dark:hover:file:bg-violet-700 cursor-pointer transition-colors mt-2">
-        </div>
-         <div class="flex justify-center mb-4">
-            <label for="maxSizeInput" class="font-semibold mr-2 self-center">Max Size (longest side):</label>
-            <input type="number" id="maxSizeInput" value="1000" class="bg-gray-200 dark:bg-gray-700 rounded-lg p-2 w-24 text-center">
-        </div>
-        <div id="fileList" class="text-center text-sm text-gray-500 dark:text-gray-400 mb-4 h-6"></div>
-    </div>
     
-    <!-- ===== SHARED CONTROLS ===== -->
-    <div id="sharedControls" class="border-t border-b border-gray-200 dark:border-gray-700 py-6 my-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-6">
-          
-          <!-- Column 1: Main Analysis -->
-          <div class="space-y-4">
-             <div>
-                <label class="font-semibold mb-2 block">Analysis Mode:</label>
-                <div class="flex space-x-4">
-                     <label class="flex items-center"><input type="radio" name="topLevelAnalysisMode" value="ida" class="w-4 h-4 mr-2 styled-radio" checked> IDA</label>
-                     <label class="flex items-center"><input type="radio" name="topLevelAnalysisMode" value="ela" class="w-4 h-4 mr-2 styled-radio"> ELA</label>
-                </div>
-            </div>
-            <div id="idaControls">
-                <div>
-                    <label for="mInput" class="font-semibold mb-2 block">Factor (m): <span id="mVal" class="font-normal">4</span></label>
-                    <input id="mInput" type="range" min="1" max="5" value="4" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                </div>
-                <div>
-                    <label for="xInput" class="font-semibold mb-2 block">Degradation (x): <span id="xVal" class="font-normal">5</span></label>
-                    <input id="xInput" type="range" min="1" max="10" value="5" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                </div>
-            </div>
-          </div>
-
-          <!-- Column 2: Channel and Sub-Analysis -->
-          <div class="space-y-4">
-            <div>
-                <label class="font-semibold mb-2 block">Channel:</label>
-                <div class="grid grid-cols-2 gap-y-2 gap-x-4">
-                     <label class="flex items-center text-sm"><input type="radio" name="channelMode" value="standard" class="w-4 h-4 mr-2 styled-radio" checked> Standard</label>
-                     <label class="flex items-center text-sm"><input type="radio" name="channelMode" value="luminescence" class="w-4 h-4 mr-2 styled-radio"> Luminescence</label>
-                     <label class="flex items-center text-sm"><input type="radio" name="channelMode" value="inverted" class="w-4 h-4 mr-2 styled-radio"> Inverted</label>
-                     <label class="flex items-center text-sm"><input type="radio" name="channelMode" value="heatmap" class="w-4 h-4 mr-2 styled-radio"> Heatmap</label>
-                     <label class="flex items-center text-sm"><input type="radio" name="channelMode" value="threshold" class="w-4 h-4 mr-2 styled-radio"> Threshold</label>
-                </div>
-                <div id="thresholdContainer" class="hidden mt-2">
-                     <label for="thresholdSlider" class="text-sm font-semibold mb-1 block">Threshold: <span id="thresholdVal">30</span></label>
-                     <input id="thresholdSlider" type="range" min="1" max="255" value="30" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
-                </div>
-            </div>
-             <div>
-                <label class="font-semibold mb-2 block">Sub-Analysis:</label>
-                 <div class="grid grid-cols-2 gap-y-2 gap-x-4">
-                    <label class="flex items-center text-sm"><input type="radio" name="subAnalysisMode" value="none" class="w-4 h-4 mr-2 styled-radio" checked> None</label>
-                    <label class="flex items-center text-sm"><input type="radio" name="subAnalysisMode" value="level-sweep" class="w-4 h-4 mr-2 styled-radio"> Level Sweep</label>
-                    <label class="flex items-center text-sm"><input type="radio" name="subAnalysisMode" value="q-curve" class="w-4 h-4 mr-2 styled-radio"> Q-Curve</label>
-                    <label class="flex items-center text-sm"><input type="radio" name="subAnalysisMode" value="iterative" class="w-4 h-4 mr-2 styled-radio"> Iterative</label>
-                    <label class="flex items-center text-sm"><input type="radio" name="subAnalysisMode" value="noise-analysis" class="w-4 h-4 mr-2 styled-radio"> Noise Analysis</label>
-                </div>
-                <div id="iterativeContainer" class="hidden mt-2">
-                     <label for="iterativeSlider" class="text-sm font-semibold mb-1 block">Iterations: <span id="iterativeVal">3</span></label>
-                     <input id="iterativeSlider" type="range" min="2" max="10" value="3" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
-                </div>
-            </div>
-          </div>
-          
-          <!-- Column 3: Stitching and Details -->
-          <div class="space-y-4">
-             <div>
-                <label id="stitchLabel" class="font-semibold mb-2 block">Stitch Direction:</label>
-                <div class="flex space-x-2" id="stitchControls">
-                    <input type="radio" id="stitchNone" name="stitchDirection" value="none" class="hidden" checked>
-                    <label for="stitchNone" title="None" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600"><span class="font-bold text-gray-800 dark:text-gray-200">X</span></label>
-                    <input type="radio" id="stitchLeft" name="stitchDirection" value="left" class="hidden">
-                    <label for="stitchLeft" title="Left" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></label>
-                    <input type="radio" id="stitchTop" name="stitchDirection" value="top" class="hidden">
-                    <label for="stitchTop" title="Top" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" /></svg></label>
-                    <input type="radio" id="stitchBottom" name="stitchDirection" value="bottom" class="hidden">
-                    <label for="stitchBottom" title="Bottom" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg></label>
-                    <input type="radio" id="stitchRight" name="stitchDirection" value="right" class="hidden">
-                    <label for="stitchRight" title="Right" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 hover:bg-gray-300 dark:hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></label>
-                </div>
-              </div>
-               <div class="flex items-center">
-                <input id="detailsCheck" type="checkbox" class="w-4 h-4 mr-2 styled-checkbox">
-                <label for="detailsCheck">Show details on photo?</label>
-              </div>
-          </div>
-        </div>
-    </div>
+    <button id="darkModeToggle" class="fixed top-4 right-4 p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition-colors shadow">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="darkModeIcon"></svg>
+    </button>
     
-    <!-- ===== ACTION BUTTONS ===== -->
-    <div id="singleFileButtons" class="flex space-x-4 justify-center">
-        <button id="processBtn" class="bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-6 rounded-full transition-colors">Process</button>
-        <button id="gridBtn" class="bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-6 rounded-full transition-colors">Grid Analysis</button>
-        <button id="standardBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 font-bold py-2 px-6 rounded-full transition-colors">STANDARD</button>
-        <button id="saveBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 font-bold py-2 px-6 rounded-full transition-colors">Save</button>
-    </div>
-
-    <div id="batchButtons" class="hidden flex-col items-center justify-center space-y-4">
-        <div class="flex space-x-4 justify-center">
-            <button id="batchProcessStandardBtn" class="bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-6 rounded-full transition-colors">Process All (Standard)</button>
-            <button id="batchProcessGridBtn" class="bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-6 rounded-full transition-colors">Process All (Grid)</button>
+    <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg max-w-5xl w-full transition-colors">
+        <div class="flex justify-between items-center mb-2">
+            <h1 class="text-3xl font-bold">Image Forensics Tool</h1>
+            <button id="toggleViewBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 font-bold py-2 px-4 rounded-full transition-colors text-sm">
+                Switch to Batch Mode
+            </button>
         </div>
-        
-        <!-- Advanced Settings -->
-        <div class="w-full pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
-            <div class="flex items-center justify-center">
-                <input id="advancedSettingsCheck" type="checkbox" class="w-4 h-4 mr-2 styled-checkbox">
-                <label for="advancedSettingsCheck" class="font-semibold">Show Advanced Output Settings</label>
+
+        <div class="border-b border-gray-200 dark:border-gray-700 mb-4">
+            <nav class="-mb-px flex space-x-8" id="tabs">
+                <button id="analysisTab" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-violet-500 text-violet-600">
+                    Analysis Tool
+                </button>
+                <button id="basicsTab" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600">
+                    Basics
+                </button>
+            </nav>
+        </div>
+
+        <div id="analysisContainer">
+            <div id="singleFileView">
+                <p class="text-center text-gray-600 dark:text-gray-400 mb-6">Use this tool to analyze compression artifacts in a single image.</p>
+                <div id="drop-area-single" class="drop-area p-6 rounded-lg text-center mb-6">
+                    <label for="fileInput" class="font-semibold mb-2">Drag & Drop or Select a File:</label>
+                    <input id="fileInput" type="file" accept="image/*" class="w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100 dark:file:bg-violet-800 dark:file:text-violet-200 dark:hover:file:bg-violet-700 cursor-pointer transition-colors mt-2">
+                </div>
             </div>
 
-            <div id="advancedSettingsContainer" class="hidden mt-4 space-y-4">
-                <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg space-y-4">
-                    <div>
-                        <label for="namingPatternInput" class="font-semibold mb-2 block">File Naming Pattern:</label>
-                        <input id="namingPatternInput" type="text" value="{fname}-{mode}-{channel}-{sub}" class="w-full bg-gray-200 dark:bg-gray-600 rounded-md p-2 text-sm">
-                        <p class="text-xs text-gray-500 mt-1">Use: {fname}, {mode}, {channel}, {sub}, {iterations}, {m}, {x}</p>
+            <div id="batchView" class="hidden">
+                <p class="text-center text-gray-600 dark:text-gray-400 mb-6">Process multiple images at once. All images will be resized before processing.</p>
+                <div id="drop-area-batch" class="drop-area p-6 rounded-lg text-center mb-4">
+                    <label for="batchFileInput" class="font-semibold mb-2">Drag & Drop or Select Multiple Images:</label>
+                    <input id="batchFileInput" type="file" accept="image/*" multiple class="w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100 dark:file:bg-violet-800 dark:file:text-violet-200 dark:hover:file:bg-violet-700 cursor-pointer transition-colors mt-2">
+                </div>
+                <div class="flex justify-center mb-4">
+                    <label for="maxSizeInput" class="font-semibold mr-2 self-center">Max Size (longest side):</label>
+                    <input type="number" id="maxSizeInput" value="1000" class="bg-gray-200 dark:bg-gray-700 rounded-lg p-2 w-24 text-center">
+                </div>
+                <div id="fileList" class="text-center text-sm text-gray-500 dark:text-gray-400 mb-4 h-6"></div>
+            </div>
+            
+            <div id="configManager" class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4 mb-6">
+                <h2 class="text-xl font-semibold mb-3 text-center">Configuration Profiles</h2>
+                <div id="configList" class="h-24 overflow-y-auto bg-gray-100 dark:bg-gray-700 rounded-md p-2 border border-gray-300 dark:border-gray-600 mb-3">
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="configNameInput" placeholder="Enter profile name..." class="w-full bg-white dark:bg-gray-800 rounded-md p-2 border border-gray-300 dark:border-gray-600 text-sm">
+                        <button id="saveConfigBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md text-sm whitespace-nowrap">Save As</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="loadConfigBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md text-sm">Load Selected</button>
+                        <button id="deleteConfigBtn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md text-sm">Delete Selected</button>
+                    </div>
+                </div>
+                <div class="flex justify-center space-x-4 mt-4">
+                    <button id="importConfigBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md text-sm">Import Profiles</button>
+                    <button id="exportConfigBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md text-sm">Export Profiles</button>
+                    <input type="file" id="importConfigFileInput" class="hidden" accept=".json">
+                </div>
+            </div>
+
+            <div id="sharedControls" class="border-t border-b border-gray-200 dark:border-gray-700 py-6 my-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-6">
+                
+                    <div class="space-y-4">
                         <div>
-                            <label for="reduceSizeSlider" class="font-semibold mb-2 block">Reduce Size: <span id="reduceSizeVal" class="font-normal">50</span>%</label>
-                            <input id="reduceSizeSlider" type="range" min="10" max="100" value="50" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                            <label class="font-semibold mb-2 block">Analysis Mode:</label>
+                            <div class="flex space-x-4">
+                                <label class="flex items-center"><input type="radio" name="topLevelAnalysisMode" value="ida" class="w-4 h-4 mr-2 styled-radio" checked> IDA</label>
+                                <label class="flex items-center"><input type="radio" name="topLevelAnalysisMode" value="ela" class="w-4 h-4 mr-2 styled-radio"> ELA</label>
+                            </div>
                         </div>
                         <div>
-                            <label class="font-semibold mb-2 block">File Format:</label>
-                            <div class="flex space-x-4">
-                                <label class="flex items-center"><input type="radio" name="fileFormat" value="png" class="w-4 h-4 mr-2 styled-radio"> PNG</label>
-                                <label class="flex items-center"><input type="radio" name="fileFormat" value="jpg" class="w-4 h-4 mr-2 styled-radio" checked> JPG</label>
+                            <label for="mInput" class="font-semibold mb-2 block">Exposure (m): <span id="mVal" class="font-normal">4</span></label>
+                            <input id="mInput" type="range" min="1" max="10" value="4" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                        </div>
+                        <div id="idaSpecificControls">
+                            <label for="xInput" class="font-semibold mb-2 block">IDA Degradation (x): <span id="xVal" class="font-normal">5</span></label>
+                            <input id="xInput" type="range" min="1" max="100" value="5" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="font-semibold mb-2 block">Channel:</label>
+                            <div class="grid grid-cols-2 gap-y-2 gap-x-4">
+                                <label class="flex items-center text-sm"><input type="radio" name="channelMode" value="standard" class="w-4 h-4 mr-2 styled-radio" checked> Standard</label>
+                                <label class="flex items-center text-sm"><input type="radio" name="channelMode" value="luminescence" class="w-4 h-4 mr-2 styled-radio"> Luminescence</label>
+                                <label class="flex items-center text-sm"><input type="radio" name="channelMode" value="inverted" class="w-4 h-4 mr-2 styled-radio"> Inverted</label>
+                                <label class="flex items-center text-sm"><input type="radio" name="channelMode" value="heatmap" class="w-4 h-4 mr-2 styled-radio"> Heatmap</label>
+                                <label class="flex items-center text-sm"><input type="radio" name="channelMode" value="threshold" class="w-4 h-4 mr-2 styled-radio"> Threshold</label>
+                            </div>
+                            <div id="thresholdContainer" class="hidden mt-2">
+                                <label for="thresholdSlider" class="text-sm font-semibold mb-1 block">Threshold: <span id="thresholdVal">30</span></label>
+                                <input id="thresholdSlider" type="range" min="1" max="255" value="30" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="font-semibold mb-2 block">Sub-Analysis:</label>
+                            <div class="grid grid-cols-2 gap-y-2 gap-x-4">
+                                <label class="flex items-center text-sm"><input type="radio" name="subAnalysisMode" value="none" class="w-4 h-4 mr-2 styled-radio" checked> None</label>
+                                <label class="flex items-center text-sm"><input type="radio" name="subAnalysisMode" value="level-sweep" class="w-4 h-4 mr-2 styled-radio"> Level Sweep</label>
+                                <label class="flex items-center text-sm"><input type="radio" name="subAnalysisMode" value="q-curve" class="w-4 h-4 mr-2 styled-radio"> Q-Curve</label>
+                                <label class="flex items-center text-sm"><input type="radio" name="subAnalysisMode" value="iterative" class="w-4 h-4 mr-2 styled-radio"> Iterative</label>
                             </div>
                         </div>
                     </div>
-                    <div id="jpgQualityContainer">
-                        <label for="jpgQualitySlider" class="font-semibold mb-2 block">JPG Quality: <span id="jpgQualityVal" class="font-normal">80</span></label>
-                        <input id="jpgQualitySlider" type="range" min="1" max="100" value="80" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
-                        <label class="flex items-center mt-2 text-sm"><input id="stripExifCheck" type="checkbox" class="w-4 h-4 mr-2 styled-checkbox">Strip EXIF Metadata</label>
-                    </div>
-                    <div>
-                         <label class="font-semibold mb-2 block">Download As:</label>
-                        <div class="flex space-x-4">
-                            <label class="flex items-center"><input type="radio" name="downloadType" value="individual" class="w-4 h-4 mr-2 styled-radio" checked> Individual Files</label>
-                            <label class="flex items-center"><input type="radio" name="downloadType" value="zip" class="w-4 h-4 mr-2 styled-radio"> ZIP file</label>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label id="stitchLabel" class="font-semibold mb-2 block">Stitch Direction:</label>
+                            <div class="flex space-x-2" id="stitchControls">
+                                <input type="radio" id="stitchNone" name="stitchDirection" value="none" class="hidden" checked><label for="stitchNone" title="None" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600"><span class="font-bold text-gray-800 dark:text-gray-200">X</span></label>
+                                <input type="radio" id="stitchLeft" name="stitchDirection" value="left" class="hidden"><label for="stitchLeft" title="Left" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></label>
+                                <input type="radio" id="stitchTop" name="stitchDirection" value="top" class="hidden"><label for="stitchTop" title="Top" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" /></svg></label>
+                                <input type="radio" id="stitchBottom" name="stitchDirection" value="bottom" class="hidden"><label for="stitchBottom" title="Bottom" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg></label>
+                                <input type="radio" id="stitchRight" name="stitchDirection" value="right" class="hidden"><label for="stitchRight" title="Right" class="flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full w-8 h-8 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></label>
+                            </div>
                         </div>
-                        <p id="zipWarning" class="text-xs text-yellow-600 dark:text-yellow-400 mt-2 hidden">Warning: Zipping large, un-reduced files may be slow.</p>
+                        <div class="flex items-center">
+                            <input id="detailsCheck" type="checkbox" class="w-4 h-4 mr-2 styled-checkbox">
+                            <label for="detailsCheck">Show details on photo?</label>
+                        </div>
                     </div>
                 </div>
             </div>
+            
+            <div id="singleFileButtons" class="flex space-x-4 justify-center">
+                <button id="processBtn" class="bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-6 rounded-full transition-colors">Process</button>
+                <button id="gridBtn" class="bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-6 rounded-full transition-colors">Grid Analysis</button>
+                <button id="standardBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 font-bold py-2 px-6 rounded-full transition-colors">STANDARD</button>
+                <button id="saveBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 font-bold py-2 px-6 rounded-full transition-colors">Save Image</button>
+            </div>
+
+            <div id="batchButtons" class="hidden flex-col items-center justify-center space-y-4">
+                <div class="flex space-x-4 justify-center">
+                    <button id="batchProcessStandardBtn" class="bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-6 rounded-full transition-colors">Process All (Standard)</button>
+                    <button id="batchProcessGridBtn" class="bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-6 rounded-full transition-colors">Process All (Grid)</button>
+                </div>
+                
+                <div class="w-full pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-center">
+                        <input id="advancedSettingsCheck" type="checkbox" class="w-4 h-4 mr-2 styled-checkbox">
+                        <label for="advancedSettingsCheck" class="font-semibold">Show Advanced Output Settings</label>
+                    </div>
+
+                    <div id="advancedSettingsContainer" class="hidden mt-4 space-y-4">
+                        <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg space-y-4">
+                            <div>
+                                <label for="namingPatternInput" class="font-semibold mb-2 block">File Naming Pattern:</label>
+                                <input id="namingPatternInput" type="text" value="{fname}-{mode}-{channel}-{sub}" class="w-full bg-gray-200 dark:bg-gray-600 rounded-md p-2 text-sm">
+                                <p class="text-xs text-gray-500 mt-1">Use: {fname}, {mode}, {channel}, {sub}, {m}, {x}</p>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                                <div>
+                                    <label for="reduceSizeSlider" class="font-semibold mb-2 block">Reduce Size: <span id="reduceSizeVal" class="font-normal">50</span>%</label>
+                                    <input id="reduceSizeSlider" type="range" min="10" max="100" value="50" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                                </div>
+                                <div>
+                                    <label class="font-semibold mb-2 block">File Format:</label>
+                                    <div class="flex space-x-4">
+                                        <label class="flex items-center"><input type="radio" name="fileFormat" value="png" class="w-4 h-4 mr-2 styled-radio"> PNG</label>
+                                        <label class="flex items-center"><input type="radio" name="fileFormat" value="jpg" class="w-4 h-4 mr-2 styled-radio" checked> JPG</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="jpgQualityContainer">
+                                <label for="jpgQualitySlider" class="font-semibold mb-2 block">JPG Quality: <span id="jpgQualityVal" class="font-normal">80</span></label>
+                                <input id="jpgQualitySlider" type="range" min="1" max="100" value="80" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            <div>
+                                <label class="font-semibold mb-2 block">Download As:</label>
+                                <div class="flex space-x-4">
+                                    <label class="flex items-center"><input type="radio" name="downloadType" value="individual" class="w-4 h-4 mr-2 styled-radio" checked> Individual Files</label>
+                                    <label class="flex items-center"><input type="radio" name="downloadType" value="zip" class="w-4 h-4 mr-2 styled-radio"> ZIP file</label>
+                                </div>
+                                <p id="zipWarning" class="text-xs text-yellow-600 dark:text-yellow-400 mt-2 hidden">Warning: Zipping large, un-reduced files may be slow.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="batchSaveBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full transition-colors hidden">Save All Images</button>
+            </div>
+            
+            <div id="processing-indicator" class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400 min-h-[1.25rem]"></div>
+            <div id="progressBarContainer" class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 my-2 hidden">
+                <div id="progressBar" class="bg-violet-600 h-2.5 rounded-full" style="width: 0%"></div>
+            </div>
+
+            <div id="canvas-container" class="relative mt-6">
+                <canvas id="resultCanvas" class="w-full h-auto rounded-lg shadow-md"></canvas>
+            </div>
         </div>
-
-        <button id="batchSaveBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full transition-colors hidden">Save All</button>
-    </div>
-    
-    <div id="processing-indicator" class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400 min-h-[1.25rem]"></div>
-    <div id="progressBarContainer" class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 my-2 hidden">
-        <div id="progressBar" class="bg-violet-600 h-2.5 rounded-full" style="width: 0%"></div>
+        
+        <div id="basicsContainer" class="hidden prose dark:prose-invert max-w-none">
+            </div>
     </div>
 
+<script>
+    // === CONFIG ===
+    const MARKDOWN_URL = 'https://raw.githubusercontent.com/markedjs/marked/master/README.md';
 
-    <div id="canvas-container" class="relative mt-6">
-      <canvas id="resultCanvas" class="w-full h-auto rounded-lg shadow-md"></canvas>
-    </div>
-  </div>
-
-  <script>
     // === DOM Elements ===
+    // --- Views and Containers ---
+    const analysisContainer = document.getElementById('analysisContainer');
+    const basicsContainer = document.getElementById('basicsContainer');
+    const singleFileView = document.getElementById('singleFileView');
+    const batchView = document.getElementById('batchView');
+    const singleFileButtons = document.getElementById('singleFileButtons');
+    const batchButtons = document.getElementById('batchButtons');
+    const dropAreaSingle = document.getElementById('drop-area-single');
+    const dropAreaBatch = document.getElementById('drop-area-batch');
+    const resultCanvas = document.getElementById('resultCanvas');
+    const rCtx = resultCanvas.getContext('2d');
+    
+    // --- Tabs and Toggles ---
+    const analysisTab = document.getElementById('analysisTab');
+    const basicsTab = document.getElementById('basicsTab');
+    const toggleViewBtn = document.getElementById('toggleViewBtn');
+    const darkModeToggle = document.getElementById('darkModeToggle');
+
+    // --- File Inputs ---
     const fileInput = document.getElementById('fileInput');
     const batchFileInput = document.getElementById('batchFileInput');
+    const fileList = document.getElementById('fileList');
+
+    // --- Config Manager ---
+    const configList = document.getElementById('configList');
+    const configNameInput = document.getElementById('configNameInput');
+    const loadConfigBtn = document.getElementById('loadConfigBtn');
+    const saveConfigBtn = document.getElementById('saveConfigBtn');
+    const deleteConfigBtn = document.getElementById('deleteConfigBtn');
+    const importConfigBtn = document.getElementById('importConfigBtn');
+    const exportConfigBtn = document.getElementById('exportConfigBtn');
+    const importConfigFileInput = document.getElementById('importConfigFileInput');
+
+    // --- Control Inputs ---
     const mInput = document.getElementById('mInput');
     const xInput = document.getElementById('xInput');
     const mVal = document.getElementById('mVal');
     const xVal = document.getElementById('xVal');
     const detailsCheck = document.getElementById('detailsCheck');
+    const maxSizeInput = document.getElementById('maxSizeInput');
+    const stitchLabel = document.getElementById('stitchLabel');
+    const idaSpecificControls = document.getElementById('idaSpecificControls');
+    const thresholdContainer = document.getElementById('thresholdContainer');
+    const thresholdSlider = document.getElementById('thresholdSlider');
+    const thresholdVal = document.getElementById('thresholdVal');
+
+    // --- Action Buttons ---
     const processBtn = document.getElementById('processBtn');
     const gridBtn = document.getElementById('gridBtn');
     const standardBtn = document.getElementById('standardBtn');
     const saveBtn = document.getElementById('saveBtn');
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    const resultCanvas = document.getElementById('resultCanvas');
-    const dropAreaSingle = document.getElementById('drop-area-single');
-    const dropAreaBatch = document.getElementById('drop-area-batch');
-    const processingIndicator = document.getElementById('processing-indicator');
-    const progressBarContainer = document.getElementById('progressBarContainer');
-    const progressBar = document.getElementById('progressBar');
-    const rCtx = resultCanvas.getContext('2d');
-    const toggleViewBtn = document.getElementById('toggleViewBtn');
-    const singleFileView = document.getElementById('singleFileView');
-    const batchView = document.getElementById('batchView');
-    const singleFileButtons = document.getElementById('singleFileButtons');
-    const batchButtons = document.getElementById('batchButtons');
     const batchProcessStandardBtn = document.getElementById('batchProcessStandardBtn');
     const batchProcessGridBtn = document.getElementById('batchProcessGridBtn');
     const batchSaveBtn = document.getElementById('batchSaveBtn');
-    const maxSizeInput = document.getElementById('maxSizeInput');
-    const fileList = document.getElementById('fileList');
-    const stitchLabel = document.getElementById('stitchLabel');
-    const idaControls = document.getElementById('idaControls');
-    // New/Experimental Elements
-    const thresholdContainer = document.getElementById('thresholdContainer');
-    const thresholdSlider = document.getElementById('thresholdSlider');
-    const thresholdVal = document.getElementById('thresholdVal');
-    const iterativeContainer = document.getElementById('iterativeContainer');
-    const iterativeSlider = document.getElementById('iterativeSlider');
-    const iterativeVal = document.getElementById('iterativeVal');
 
-
-    // Advanced Settings Elements
+    // --- Indicators ---
+    const processingIndicator = document.getElementById('processing-indicator');
+    const progressBarContainer = document.getElementById('progressBarContainer');
+    const progressBar = document.getElementById('progressBar');
+    
+    // --- Advanced Settings Elements ---
     const advancedSettingsCheck = document.getElementById('advancedSettingsCheck');
     const advancedSettingsContainer = document.getElementById('advancedSettingsContainer');
     const namingPatternInput = document.getElementById('namingPatternInput');
@@ -287,47 +331,168 @@
     const jpgQualityContainer = document.getElementById('jpgQualityContainer');
     const jpgQualitySlider = document.getElementById('jpgQualitySlider');
     const jpgQualityVal = document.getElementById('jpgQualityVal');
-    const stripExifCheck = document.getElementById('stripExifCheck');
     const zipWarning = document.getElementById('zipWarning');
-
 
     // === App State ===
     let loadedFile = null;
     let loadedBatchFiles = [];
     let originalFileName = '';
     let batchCanvases = [];
+    let savedConfigurations = {};
+    let selectedProfileName = null;
     
-    // === Event Listeners ===
-    const allInputs = document.querySelectorAll('input, select');
-    allInputs.forEach(input => input.addEventListener('change', saveSettings));
-    mInput.addEventListener('input', () => { mVal.textContent = mInput.value; });
-    xInput.addEventListener('input', () => { xVal.textContent = xInput.value; });
+    // === Event Listeners Setup ===
+    function initializeEventListeners() {
+        // --- UI Mode Toggles ---
+        toggleViewBtn.addEventListener('click', toggleBatchMode);
+        darkModeToggle.addEventListener('click', toggleDarkMode);
+        analysisTab.addEventListener('click', () => switchTab('analysis'));
+        basicsTab.addEventListener('click', () => switchTab('basics'));
 
-    // --- UI Mode Toggle ---
-    toggleViewBtn.addEventListener('click', () => {
+        // --- Config Manager ---
+        saveConfigBtn.addEventListener('click', saveCurrentConfig);
+        loadConfigBtn.addEventListener('click', loadSelectedConfig);
+        deleteConfigBtn.addEventListener('click', deleteSelectedConfig);
+        exportConfigBtn.addEventListener('click', exportConfigs);
+        importConfigBtn.addEventListener('click', () => importConfigFileInput.click());
+        importConfigFileInput.addEventListener('change', handleImportFile);
+        configList.addEventListener('click', handleProfileSelection);
+
+
+        // --- File Inputs & Drag/Drop ---
+        fileInput.addEventListener('change', e => handleSingleFile(e.target.files[0]));
+        setupDragDrop(dropAreaSingle, files => handleSingleFile(files[0]));
+        batchFileInput.addEventListener('change', e => handleBatchFiles(e.target.files));
+        setupDragDrop(dropAreaBatch, files => handleBatchFiles(files));
+
+        // --- Control Inputs ---
+        mInput.addEventListener('input', () => { mVal.textContent = mInput.value; });
+        xInput.addEventListener('input', () => { xVal.textContent = xInput.value; });
+        thresholdSlider.addEventListener('input', () => { thresholdVal.textContent = thresholdSlider.value; });
+        document.querySelectorAll('input[name="topLevelAnalysisMode"]').forEach(radio => radio.addEventListener('change', updateControlsBasedOnMode));
+        document.querySelectorAll('input[name="channelMode"]').forEach(radio => radio.addEventListener('change', updateControlsBasedOnMode));
+        
+        // --- Single-File Action Buttons ---
+        processBtn.addEventListener('click', () => { if (loadedFile) processImageFile(loadedFile); });
+        gridBtn.addEventListener('click', () => { if (loadedFile) processImageFile(loadedFile, true); });
+        standardBtn.addEventListener('click', resetToStandardAndProcess);
+        saveBtn.addEventListener('click', saveSingleResult);
+
+        // --- Batch-File Action Buttons ---
+        batchProcessStandardBtn.addEventListener('click', () => processBatch(false));
+        batchProcessGridBtn.addEventListener('click', () => processBatch(true));
+        batchSaveBtn.addEventListener('click', saveBatchResults);
+
+        // --- Advanced Settings ---
+        advancedSettingsCheck.addEventListener('change', () => advancedSettingsContainer.classList.toggle('hidden', !advancedSettingsCheck.checked));
+        reduceSizeSlider.addEventListener('input', () => { reduceSizeVal.textContent = reduceSizeSlider.value; });
+        jpgQualitySlider.addEventListener('input', () => { jpgQualityVal.textContent = jpgQualitySlider.value; });
+        document.querySelectorAll('input[name="fileFormat"]').forEach(radio => {
+            radio.addEventListener('change', (e) => jpgQualityContainer.classList.toggle('hidden', e.target.value !== 'jpg'));
+        });
+        document.querySelectorAll('input[name="downloadType"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                zipWarning.classList.toggle('hidden', e.target.value !== 'zip');
+                batchSaveBtn.textContent = e.target.value === 'zip' ? 'Save as ZIP' : 'Save All Individually';
+            });
+        });
+
+        // --- Save Settings on Any Change ---
+        document.querySelectorAll('input, select').forEach(input => {
+            input.addEventListener('change', saveCurrentUIToLocalStorage);
+        });
+    }
+    
+    // === UI and State Management ===
+    
+    function switchTab(tabName) {
+        const isBasics = tabName === 'basics';
+        analysisTab.classList.toggle('border-violet-500', !isBasics);
+        analysisTab.classList.toggle('text-violet-600', !isBasics);
+        analysisTab.classList.toggle('border-transparent', isBasics);
+        basicsTab.classList.toggle('border-violet-500', isBasics);
+        basicsTab.classList.toggle('text-violet-600', isBasics);
+        basicsTab.classList.toggle('border-transparent', !isBasics);
+        analysisContainer.classList.toggle('hidden', isBasics);
+        basicsContainer.classList.toggle('hidden', !isBasics);
+        if (isBasics) loadAndRenderMarkdown();
+    }
+
+    async function loadAndRenderMarkdown() {
+        basicsContainer.innerHTML = '<p>Loading content...</p>';
+        try {
+            const response = await fetch(MARKDOWN_URL);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const markdownText = await response.text();
+            basicsContainer.innerHTML = marked.parse(markdownText);
+        } catch (error) {
+            console.error('Failed to load markdown:', error);
+            basicsContainer.innerHTML = `<p class="text-red-500">Failed to load content. Please check the console for details.</p>`;
+        }
+    }
+
+    function toggleBatchMode() {
         const isBatchMode = singleFileView.classList.toggle('hidden');
         batchView.classList.toggle('hidden');
         singleFileButtons.classList.toggle('hidden');
         batchButtons.classList.toggle('hidden');
-        
-        if (isBatchMode) {
-            toggleViewBtn.textContent = 'Switch to Single Mode';
-            stitchLabel.textContent = 'Stitch Original to Grid:';
-        } else {
-            toggleViewBtn.textContent = 'Switch to Batch Mode';
-            stitchLabel.textContent = 'Stitch Direction:';
-        }
+        toggleViewBtn.textContent = isBatchMode ? 'Switch to Single Mode' : 'Switch to Batch Mode';
+        stitchLabel.textContent = isBatchMode ? 'Stitch Original to Grid:' : 'Stitch Direction:';
         clearCanvas();
-    });
+    }
 
-    // --- File Input ---
-    fileInput.addEventListener('change', e => handleSingleFile(e.target.files[0]));
-    setupDragDrop(dropAreaSingle, files => handleSingleFile(files[0]));
-    batchFileInput.addEventListener('change', e => handleBatchFiles(e.target.files));
-    setupDragDrop(dropAreaBatch, files => handleBatchFiles(files));
+    function toggleDarkMode() {
+        document.documentElement.classList.toggle('dark');
+        updateDarkModeIcon();
+        saveCurrentUIToLocalStorage();
+    }
+
+    function updateDarkModeIcon() {
+        const isDark = document.documentElement.classList.contains('dark');
+        document.getElementById('darkModeIcon').innerHTML = isDark 
+            ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.354 5.354l-.707.707M6.346 6.346l-.707-.707m12.728 0l-.707.707M6.346 17.654l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>`
+            : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>`;
+    }
+
+    function updateControlsBasedOnMode() {
+        const analysisMode = document.querySelector('input[name="topLevelAnalysisMode"]:checked').value;
+        const channelMode = document.querySelector('input[name="channelMode"]:checked').value;
+        const isELA = analysisMode === 'ela';
+        
+        idaSpecificControls.classList.toggle('control-disabled', isELA);
+        xInput.disabled = isELA;
+        gridBtn.disabled = isELA;
+        batchProcessGridBtn.disabled = isELA;
+        thresholdContainer.classList.toggle('hidden', channelMode !== 'threshold');
+    }
+
+    function setProcessingState(isProcessing, message = 'Processing...') {
+        const allButtons = document.querySelectorAll('button');
+        processingIndicator.textContent = isProcessing ? message : '';
+        allButtons.forEach(btn => {
+            if(btn.id !== 'darkModeToggle') {
+                btn.disabled = isProcessing;
+                btn.classList.toggle('opacity-50', isProcessing);
+                btn.classList.toggle('cursor-not-allowed', isProcessing);
+            }
+        });
+        if (!isProcessing) updateControlsBasedOnMode();
+        progressBarContainer.classList.toggle('hidden', !isProcessing || !batchView.classList.contains('hidden'));
+        if (!isProcessing) progressBar.style.width = '0%';
+    }
+    
+    function setupDragDrop(area, callback) {
+        area.addEventListener('dragover', e => { e.preventDefault(); area.classList.add('drag-over'); });
+        area.addEventListener('dragleave', () => area.classList.remove('drag-over'));
+        area.addEventListener('drop', e => {
+            e.preventDefault();
+            area.classList.remove('drag-over');
+            if (e.dataTransfer.files.length > 0) callback(e.dataTransfer.files);
+        });
+    }
 
     async function handleSingleFile(file) {
-        if (!file) return;
+        if (!file || !file.type.startsWith('image/')) return;
         loadedFile = file;
         originalFileName = file.name.split('.').slice(0, -1).join('.');
         await processImageFile(loadedFile);
@@ -341,633 +506,213 @@
         batchCanvases = [];
         clearCanvas();
     }
-    
-    // --- Processing Buttons ---
-    processBtn.addEventListener('click', async () => { if (loadedFile) await processImageFile(loadedFile); });
-    gridBtn.addEventListener('click', () => { if (loadedFile) processImageFile(loadedFile, true); });
-    
-    standardBtn.addEventListener('click', async () => {
+
+    async function resetToStandardAndProcess() {
         if (!loadedFile) return;
-        
-        // Reset settings
         document.querySelector('input[name="topLevelAnalysisMode"][value="ida"]').checked = true;
         document.querySelector('input[name="channelMode"][value="standard"]').checked = true;
         document.querySelector('input[name="subAnalysisMode"][value="none"]').checked = true;
-        
-        // Trigger change events to update UI
-        document.querySelector('input[name="topLevelAnalysisMode"]:checked').dispatchEvent(new Event('change'));
-        document.querySelector('input[name="channelMode"]:checked').dispatchEvent(new Event('change'));
-        document.querySelector('input[name="subAnalysisMode"]:checked').dispatchEvent(new Event('change'));
-        
         mInput.value = 4; xInput.value = 5; mVal.textContent = 4; xVal.textContent = 5;
-        
+        updateControlsBasedOnMode();
         await processImageFile(loadedFile);
-    });
+    }
 
-    batchProcessStandardBtn.addEventListener('click', () => processBatch(false));
-    batchProcessGridBtn.addEventListener('click', () => processBatch(true));
+    // === Canvas and Image Utilities (Unchanged) ===
+    function clearCanvas() { rCtx.clearRect(0, 0, resultCanvas.width, resultCanvas.height); resultCanvas.width = 1; resultCanvas.height = 1; }
+    function drawResult(canvasElem) { if (!canvasElem) return; resultCanvas.width = canvasElem.width; resultCanvas.height = canvasElem.height; rCtx.drawImage(canvasElem, 0, 0); }
+    function loadImage(src) { return new Promise((resolve, reject) => { const img = new Image(); img.onload = () => resolve(img); img.onerror = reject; img.src = src; }); }
+    function resizeImage(img, maxSize) { const { width, height } = img; if (Math.max(width, height) <= maxSize) return img; let newWidth, newHeight; if (width > height) { newWidth = maxSize; newHeight = (height / width) * maxSize; } else { newHeight = maxSize; newWidth = (width / height) * maxSize; } const canvas = document.createElement('canvas'); canvas.width = newWidth; canvas.height = newHeight; canvas.getContext('2d').drawImage(img, 0, 0, newWidth, newHeight); return canvas; }
+    function clamp(val, min, max) { return Math.max(min, Math.min(max, val)); }
+    function addDetailsText(ctx, text, x, y, width, height) { const padding = Math.min(width, height) * 0.02; const fontSize = Math.max(12, Math.min(width, height) * 0.03); ctx.font = `bold ${fontSize}px 'Courier New', Courier, monospace`; ctx.fillStyle = 'white'; ctx.lineWidth = 2; ctx.strokeStyle = 'black'; ctx.strokeText(text, x + padding, y + height - padding); ctx.fillText(text, x + padding, y + height - padding); }
+    async function compressImage(img, quality) { const canvas = document.createElement('canvas'); canvas.width = img.width; canvas.height = img.height; canvas.getContext('2d').drawImage(img, 0, 0); const dataUrl = canvas.toDataURL('image/jpeg', quality / 100); return await loadImage(dataUrl); }
 
-    // --- Save Buttons ---
-    saveBtn.addEventListener('click', saveSingleResult);
-    batchSaveBtn.addEventListener('click', saveBatchResults);
+    // === Core Image Processing Logic (Unchanged) ===
+    function getPixelValueForChannel(r_diff, g_diff, b_diff, params) { const { channelMode, threshold, scale } = params; let r, g, b; switch (channelMode) { case 'luminescence': const lum = (r_diff + g_diff + b_diff) / 3; r = g = b = clamp(lum * scale, 0, 255); break; case 'inverted': r = 255 - clamp(r_diff * scale, 0, 255); g = 255 - clamp(g_diff * scale, 0, 255); b = 255 - clamp(b_diff * scale, 0, 255); break; case 'heatmap': const intensity = clamp(((r_diff + g_diff + b_diff) / 3 * scale) / 255, 0, 1); r = clamp(255 * Math.sqrt(intensity), 0, 255); g = clamp(255 * (1 - Math.abs(intensity - 0.5) * 2), 0, 255); b = clamp(255 * Math.sqrt(1 - intensity), 0, 255); break; case 'threshold': const avg = (r_diff + g_diff + b_diff) / 3; r = g = b = (avg > threshold ? 255 : 0); break; case 'standard': default: r = clamp(r_diff * scale, 0, 255); g = clamp(g_diff * scale, 0, 255); b = clamp(b_diff * scale, 0, 255); break; } return { r, g, b }; }
+    function createDiffCanvas(img1, img2, params) { const w = img1.width, h = img1.height; const oCtx = document.createElement('canvas').getContext('2d'); oCtx.canvas.width = w; oCtx.canvas.height = h; oCtx.drawImage(img1, 0, 0); const oData = oCtx.getImageData(0, 0, w, h).data; const cCtx = document.createElement('canvas').getContext('2d'); cCtx.canvas.width = w; cCtx.canvas.height = h; cCtx.drawImage(img2, 0, 0); const cData = cCtx.getImageData(0, 0, w, h).data; const diffCanvas = document.createElement('canvas'); diffCanvas.width = w; diffCanvas.height = h; const dCtx = diffCanvas.getContext('2d'); const diffData = dCtx.createImageData(w, h); const sFactor = (params.topLevelAnalysisMode === 'ela') ? (params.m * 25) : (params.m * (params.x * 5) * 47); let maxDiff = 0; for (let i = 0; i < oData.length; i += 4) { maxDiff = Math.max(maxDiff, Math.abs(oData[i] - cData[i]), Math.abs(oData[i + 1] - cData[i + 1]), Math.abs(oData[i + 2] - cData[i + 2])); } const scale = sFactor / (maxDiff || 1); const pixelParams = { ...params, scale }; for (let i = 0; i < oData.length; i += 4) { const r_d = Math.abs(oData[i] - cData[i]); const g_d = Math.abs(oData[i+1] - cData[i+1]); const b_d = Math.abs(oData[i+2] - cData[i+2]); const { r, g, b } = getPixelValueForChannel(r_d, g_d, b_d, pixelParams); diffData.data[i] = r; diffData.data[i+1] = g; diffData.data[i+2] = b; diffData.data[i+3] = 255; } dCtx.putImageData(diffData, 0, 0); return diffCanvas; }
+    async function getAnalysisCanvas(origImg, params) { if (params.subAnalysisMode === 'q-curve') return getQCurveCanvas(origImg, params); if (params.subAnalysisMode === 'iterative') return getIterativeCanvas(origImg, params); let secondImgForDiff; if (params.topLevelAnalysisMode === 'ela') { secondImgForDiff = await compressImage(origImg, 95); } else { secondImgForDiff = await compressImage(origImg, params.x); } return createDiffCanvas(origImg, secondImgForDiff, params); }
+    async function getQCurveCanvas(origImg, params) { const w = origImg.width, h = origImg.height; const qualities = (params.topLevelAnalysisMode === 'ela') ? [95, 85, 75] : [params.x, Math.max(1, params.x-10), Math.max(1, params.x-20)]; const diffs = await Promise.all([ getAnalysisCanvas(origImg, {...params, subAnalysisMode: 'none', x: qualities[0]}), getAnalysisCanvas(origImg, {...params, subAnalysisMode: 'none', x: qualities[1]}), getAnalysisCanvas(origImg, {...params, subAnalysisMode: 'none', x: qualities[2]}) ]); const datas = diffs.map(d => d.getContext('2d').getImageData(0,0,w,h).data); const finalCanvas = document.createElement('canvas'); finalCanvas.width = w; finalCanvas.height = h; const fCtx = finalCanvas.getContext('2d'); const fData = fCtx.createImageData(w,h); for(let i=0; i<fData.data.length; i+=4) { fData.data[i] = (datas[0][i] + datas[0][i+1] + datas[0][i+2])/3; fData.data[i+1] = (datas[1][i] + datas[1][i+1] + datas[1][i+2])/3; fData.data[i+2] = (datas[2][i] + datas[2][i+1] + datas[2][i+2])/3; fData.data[i+3] = 255; } fCtx.putImageData(fData,0,0); return finalCanvas; }
+    async function getIterativeCanvas(origImg, params) { let qualities = []; if (params.topLevelAnalysisMode === 'ela') { qualities = [99, 95, 90, 85, 80]; } else { qualities = [80, 60, 50, 30, 20, 10, parseInt(params.x)]; } let currentImg = origImg; for (const quality of qualities) { currentImg = await compressImage(currentImg, quality); } return createDiffCanvas(origImg, currentImg, params); }
+    function stitchImage(orig, diff, direction) { if (direction === 'none') return diff; const finalCanvas = document.createElement('canvas'); const fCtx = finalCanvas.getContext('2d'); const w = orig.width, h = orig.height; switch(direction) { case 'left': finalCanvas.width = w * 2; finalCanvas.height = h; fCtx.drawImage(diff, 0, 0); fCtx.drawImage(orig, w, 0); break; case 'right': finalCanvas.width = w * 2; finalCanvas.height = h; fCtx.drawImage(orig, 0, 0); fCtx.drawImage(diff, w, 0); break; case 'top': finalCanvas.width = w; finalCanvas.height = h * 2; fCtx.drawImage(diff, 0, 0); fCtx.drawImage(orig, 0, h); break; case 'bottom': finalCanvas.width = w; finalCanvas.height = h * 2; fCtx.drawImage(orig, 0, 0); fCtx.drawImage(diff, 0, h); break; } return finalCanvas; }
+    async function processSingleImageCore(img, params) { const analysisCanvas = await getAnalysisCanvas(img, params); if(params.showDetails && params.stitchDirection === 'none' && params.topLevelAnalysisMode === 'ida') { addDetailsText(analysisCanvas.getContext('2d'), `m=${params.m}, x=${params.x}`, 0, 0, analysisCanvas.width, analysisCanvas.height); } return stitchImage(img, analysisCanvas, params.stitchDirection); }
+    async function createGridCanvas(img, params) { const qualities = [80, 60, 50, 30, 20, 10, 5, 3, 2, 1]; const resultCanvases = []; for (const q of qualities) { const gridParams = { ...params, x: q, stitchDirection: 'none', subAnalysisMode: 'none' }; const processedCanvas = await getAnalysisCanvas(img, gridParams); if (params.showDetails) { addDetailsText(processedCanvas.getContext('2d'), `m=${params.m}, x=${q}`, 0, 0, processedCanvas.width, processedCanvas.height); } resultCanvases.push(processedCanvas); } const gridCanvas = document.createElement('canvas'); gridCanvas.width = img.width * 5; gridCanvas.height = img.height * 2; const gridCtx = gridCanvas.getContext('2d'); resultCanvases.forEach((canvas, i) => { const row = Math.floor(i / 5); const col = i % 5; gridCtx.drawImage(canvas, col * img.width, row * img.height); }); return gridCanvas; }
+    function stitchGridWithOriginal(originalImage, gridCanvas, direction) { if (direction === 'none') return gridCanvas; const resizeToMatch = (imgToResize, refCanvas, dim) => { const canvas = document.createElement('canvas'); const aspectRatio = imgToResize.width / imgToResize.height; let newW, newH; if (dim === 'height') { newH = refCanvas.height; newW = newH * aspectRatio; } else { newW = refCanvas.width; newH = newW / aspectRatio; } canvas.width = newW; canvas.height = newH; canvas.getContext('2d').drawImage(imgToResize, 0, 0, newW, newH); return canvas; }; const resizedOriginal = resizeToMatch(originalImage, gridCanvas, (direction === 'left' || direction === 'right') ? 'height' : 'width'); const finalCanvas = document.createElement('canvas'); const fCtx = finalCanvas.getContext('2d'); if (direction === 'left' || direction === 'right') { finalCanvas.width = gridCanvas.width + resizedOriginal.width; finalCanvas.height = gridCanvas.height; if (direction === 'left') { fCtx.drawImage(resizedOriginal, 0, 0); fCtx.drawImage(gridCanvas, resizedOriginal.width, 0); } else { fCtx.drawImage(gridCanvas, 0, 0); fCtx.drawImage(resizedOriginal, gridCanvas.width, 0); } } else { finalCanvas.width = gridCanvas.width; finalCanvas.height = gridCanvas.height + resizedOriginal.height; if (direction === 'top') { fCtx.drawImage(resizedOriginal, 0, 0); fCtx.drawImage(gridCanvas, 0, resizedOriginal.height); } else { fCtx.drawImage(gridCanvas, 0, 0); fCtx.drawImage(resizedOriginal, 0, gridCanvas.height); } } return finalCanvas; }
+    
+    // === Main Execution Flows (Unchanged) ===
+    async function processImageFile(file, isGrid = false) { if (!file) return; setProcessingState(true, isGrid ? 'Creating Grid...' : 'Processing...'); await new Promise(r => setTimeout(r, 50)); const img = await loadImage(URL.createObjectURL(file)); const params = collectCurrentSettings(); let finalCanvas; if (isGrid) { const gridCanvas = await createGridCanvas(img, params); finalCanvas = stitchGridWithOriginal(img, gridCanvas, params.stitchDirection); } else { finalCanvas = await processSingleImageCore(img, params); } drawResult(finalCanvas); setProcessingState(false); }
+    async function processBatch(isGrid) { if (loadedBatchFiles.length === 0) return; setProcessingState(true, 'Starting batch process...'); batchCanvases = []; batchSaveBtn.classList.add('hidden'); progressBar.style.width = '0%'; const maxSize = parseInt(maxSizeInput.value) || 1000; for (let i = 0; i < loadedBatchFiles.length; i++) { const file = loadedBatchFiles[i]; const progress = ((i + 1) / loadedBatchFiles.length) * 100; setProcessingState(true, `Processing ${i + 1}/${loadedBatchFiles.length}: ${file.name}`); progressBar.style.width = `${progress}%`; await new Promise(r => setTimeout(r, 20)); const originalImage = await loadImage(URL.createObjectURL(file)); const resizedImage = resizeImage(originalImage, maxSize); const params = collectCurrentSettings(); let finalCanvas; if (isGrid) { const gridCanvas = await createGridCanvas(resizedImage, params); finalCanvas = stitchGridWithOriginal(resizedImage, gridCanvas, params.stitchDirection); } else { finalCanvas = await processSingleImageCore(resizedImage, params); } const fname = file.name.split('.').slice(0, -1).join('.'); batchCanvases.push({ name: fname, canvas: finalCanvas, params: params, isGrid: isGrid }); drawResult(finalCanvas); } setProcessingState(false, 'Batch processing complete.'); processingIndicator.textContent = `${batchCanvases.length} images processed and ready to save.`; if (batchCanvases.length > 0) batchSaveBtn.classList.remove('hidden'); }
 
-    // --- Dark Mode ---
-    darkModeToggle.addEventListener('click', () => {
-        document.documentElement.classList.toggle('dark');
+    // === Saving and Downloading (Unchanged) ===
+    function saveSingleResult() { if (!loadedFile) return; const dataURL = resultCanvas.toDataURL('image/png'); downloadDataURL(dataURL, `${originalFileName}_Forensics.png`); }
+    async function saveBatchResults() { if (!batchCanvases || batchCanvases.length === 0) return; setProcessingState(true, 'Preparing downloads...'); const useAdvanced = advancedSettingsCheck.checked; const sizeReduction = useAdvanced ? parseInt(reduceSizeSlider.value) / 100 : 1.0; const format = useAdvanced ? document.querySelector('input[name="fileFormat"]:checked').value : 'jpg'; const quality = useAdvanced ? parseInt(jpgQualitySlider.value) / 100 : 0.8; const downloadType = useAdvanced ? document.querySelector('input[name="downloadType"]:checked').value : 'individual'; const mimeType = `image/${format === 'jpg' ? 'jpeg' : 'png'}`; const getFinalFileName = (item) => { if (!useAdvanced) return `${item.name}_${item.isGrid ? 'grid' : 'standard'}.${format}`; let pattern = namingPatternInput.value; return pattern.replace('{fname}', item.name).replace('{mode}', item.params.topLevelAnalysisMode).replace('{channel}', item.params.channelMode).replace('{sub}', item.params.subAnalysisMode).replace(/{m}|{factor}/g, item.params.m).replace(/{x}|{degradation}/g, item.params.x).replace(/-{sub}/, item.params.subAnalysisMode === 'none' ? '' : `-${item.params.subAnalysisMode}`) + `.${format}`; }; const getOutputFile = (item) => { return new Promise(resolve => { const sourceCanvas = item.canvas; const tempCanvas = document.createElement('canvas'); tempCanvas.width = sourceCanvas.width * sizeReduction; tempCanvas.height = sourceCanvas.height * sizeReduction; tempCanvas.getContext('2d').drawImage(sourceCanvas, 0, 0, tempCanvas.width, tempCanvas.height); if (downloadType === 'zip') { tempCanvas.toBlob(resolve, mimeType, quality); } else { resolve(tempCanvas.toDataURL(mimeType, quality)); } }); }; if (downloadType === 'zip') { const zip = new JSZip(); for (let i = 0; i < batchCanvases.length; i++) { const item = batchCanvases[i]; const finalName = getFinalFileName(item); setProcessingState(true, `Zipping ${i + 1}/${batchCanvases.length}: ${finalName}`); const blob = await getOutputFile(item); zip.file(finalName, blob); } setProcessingState(true, 'Generating ZIP file...'); const content = await zip.generateAsync({ type: "blob", compression: "STORE" }); downloadBlob(content, 'ImageForensics_Batch_Results.zip'); } else { for (let i = 0; i < batchCanvases.length; i++) { const item = batchCanvases[i]; const finalName = getFinalFileName(item); setProcessingState(true, `Downloading ${i + 1}/${batchCanvases.length}: ${finalName}`); const dataURL = await getOutputFile(item); downloadDataURL(dataURL, finalName); await new Promise(resolve => setTimeout(resolve, 250)); } } setProcessingState(false); processingIndicator.textContent = `Finished downloading ${batchCanvases.length} files.`; batchCanvases = []; }
+    function downloadDataURL(dataURL, filename) { const link = document.createElement('a'); link.href = dataURL; link.download = filename; document.body.appendChild(link); link.click(); document.body.removeChild(link); }
+    function downloadBlob(blob, filename) { const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = filename; document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(link.href); }
+
+    // === Settings & Configuration Profile Logic ===
+
+    function collectCurrentSettings() {
+        return { topLevelAnalysisMode: document.querySelector('input[name="topLevelAnalysisMode"]:checked').value, m: mInput.value, x: xInput.value, channelMode: document.querySelector('input[name="channelMode"]:checked').value, subAnalysisMode: document.querySelector('input[name="subAnalysisMode"]:checked').value, stitchDirection: document.querySelector('input[name="stitchDirection"]:checked').value, showDetails: detailsCheck.checked, maxSize: maxSizeInput.value, threshold: thresholdSlider.value, advanced: advancedSettingsCheck.checked, namingPattern: namingPatternInput.value, reduceSize: reduceSizeSlider.value, format: document.querySelector('input[name="fileFormat"]:checked').value, quality: jpgQualitySlider.value, downloadType: document.querySelector('input[name="downloadType"]:checked').value, darkMode: document.documentElement.classList.contains('dark'), };
+    }
+
+    function applySettings(settings) {
+        if (!settings) return;
+        document.querySelector(`input[name="topLevelAnalysisMode"][value="${settings.topLevelAnalysisMode || 'ida'}"]`).checked = true;
+        mInput.value = settings.m; mVal.textContent = settings.m;
+        xInput.value = settings.x; xVal.textContent = settings.x;
+        document.querySelector(`input[name="channelMode"][value="${settings.channelMode || 'standard'}"]`).checked = true;
+        document.querySelector(`input[name="subAnalysisMode"][value="${settings.subAnalysisMode || 'none'}"]`).checked = true;
+        document.querySelector(`input[name="stitchDirection"][value="${settings.stitchDirection}"]`).checked = true;
+        detailsCheck.checked = settings.showDetails;
+        maxSizeInput.value = settings.maxSize;
+        thresholdSlider.value = settings.threshold || 30; thresholdVal.textContent = settings.threshold || 30;
+        advancedSettingsCheck.checked = settings.advanced;
+        namingPatternInput.value = settings.namingPattern;
+        reduceSizeSlider.value = settings.reduceSize; reduceSizeVal.textContent = settings.reduceSize;
+        document.querySelector(`input[name="fileFormat"][value="${settings.format}"]`).checked = true;
+        jpgQualitySlider.value = settings.quality; jpgQualityVal.textContent = settings.quality;
+        document.querySelector(`input[name="downloadType"][value="${settings.downloadType}"]`).checked = true;
+        if (settings.darkMode) document.documentElement.classList.add('dark');
+        else document.documentElement.classList.remove('dark');
         updateDarkModeIcon();
-        saveSettings();
-    });
-    function updateDarkModeIcon(){
-         const isDark = document.documentElement.classList.contains('dark');
-        const icon = document.getElementById('darkModeIcon');
-        icon.innerHTML = isDark 
-            ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.354 5.354l-.707.707M6.346 6.346l-.707-.707m12.728 0l-.707.707M6.346 17.654l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>`
-            : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>`;
-    }
-
-
-    // --- Advanced/Experimental Settings Listeners ---
-    advancedSettingsCheck.addEventListener('change', () => advancedSettingsContainer.classList.toggle('hidden', !advancedSettingsCheck.checked));
-    
-    document.querySelectorAll('input[name="topLevelAnalysisMode"]').forEach(radio => {
-        radio.addEventListener('change', e => {
-            const isELA = e.target.value === 'ela';
-            idaControls.classList.toggle('button-disabled', isELA);
-            mInput.disabled = isELA;
-            xInput.disabled = isELA;
-            gridBtn.disabled = isELA;
-            batchProcessGridBtn.disabled = isELA;
-        });
-    });
-
-    document.querySelectorAll('input[name="channelMode"]').forEach(radio => {
-        radio.addEventListener('change', e => {
-            const mode = e.target.value;
-            thresholdContainer.classList.toggle('hidden', mode !== 'threshold');
-        });
-    });
-     document.querySelectorAll('input[name="subAnalysisMode"]').forEach(radio => {
-        radio.addEventListener('change', e => {
-            const mode = e.target.value;
-            iterativeContainer.classList.toggle('hidden', mode !== 'iterative');
-        });
-    });
-
-    thresholdSlider.addEventListener('input', () => { thresholdVal.textContent = thresholdSlider.value; });
-    iterativeSlider.addEventListener('input', () => { iterativeVal.textContent = iterativeSlider.value; });
-
-    reduceSizeSlider.addEventListener('input', () => { reduceSizeVal.textContent = reduceSizeSlider.value; });
-    jpgQualitySlider.addEventListener('input', () => { jpgQualityVal.textContent = jpgQualitySlider.value; });
-    document.querySelectorAll('input[name="fileFormat"]').forEach(radio => {
-        radio.addEventListener('change', (e) => jpgQualityContainer.classList.toggle('hidden', e.target.value !== 'jpg'));
-    });
-    document.querySelectorAll('input[name="downloadType"]').forEach(radio => {
-        radio.addEventListener('change', (e) => {
-             zipWarning.classList.toggle('hidden', e.target.value !== 'zip');
-             batchSaveBtn.textContent = e.target.value === 'zip' ? 'Save as ZIP' : 'Save All Individually';
-        });
-    });
-
-    // === Core Logic Functions ===
-    function setProcessingState(isProcessing, message = 'Processing...') {
-      const allButtons = [processBtn, gridBtn, standardBtn, saveBtn, batchProcessGridBtn, batchProcessStandardBtn, batchSaveBtn];
-      processingIndicator.textContent = isProcessing ? message : '';
-      allButtons.forEach(btn => {
-        btn.disabled = isProcessing;
-        btn.classList.toggle('button-disabled', isProcessing);
-      });
-      // Re-apply ELA grid disabling after a general state change
-      if (!isProcessing) {
-          const isELA = document.querySelector('input[name="topLevelAnalysisMode"]:checked').value === 'ela';
-          gridBtn.disabled = isELA;
-          batchProcessGridBtn.disabled = isELA;
-      }
-      progressBarContainer.classList.toggle('hidden', !isProcessing || !batchView.classList.contains('hidden'));
-      if(!isProcessing) progressBar.style.width = '0%';
+        updateControlsBasedOnMode();
+        advancedSettingsContainer.classList.toggle('hidden', !settings.advanced);
+        jpgQualityContainer.classList.toggle('hidden', settings.format !== 'jpg');
+        zipWarning.classList.toggle('hidden', settings.downloadType !== 'zip');
+        batchSaveBtn.textContent = settings.downloadType === 'zip' ? 'Save as ZIP' : 'Save All Individually';
     }
     
-    function setupDragDrop(area, callback) {
-        area.addEventListener('dragover', e => { e.preventDefault(); area.classList.add('drag-over'); });
-        area.addEventListener('dragleave', e => { area.classList.remove('drag-over'); });
-        area.addEventListener('drop', e => {
-            e.preventDefault();
-            area.classList.remove('drag-over');
-            if (e.dataTransfer.files.length > 0) { callback(e.dataTransfer.files); }
-        });
+    function saveCurrentUIToLocalStorage() {
+        try { localStorage.setItem('forensicsToolSettings', JSON.stringify(collectCurrentSettings())); } catch (e) { console.error("Could not save settings.", e); }
     }
 
-    function clearCanvas() {
-        rCtx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
-        resultCanvas.width = 1; resultCanvas.height = 1;
+    function loadLastUIFromLocalStorage() {
+        try { applySettings(JSON.parse(localStorage.getItem('forensicsToolSettings'))); } catch (e) { console.error("Could not load settings.", e); localStorage.removeItem('forensicsToolSettings'); }
     }
 
-    function drawResult(canvasElem) {
-        if (canvasElem) {
-            resultCanvas.width = canvasElem.width;
-            resultCanvas.height = canvasElem.height;
-            rCtx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
-            rCtx.drawImage(canvasElem, 0, 0);
-        }
-    }
-    
-    function loadImage(src) {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = () => resolve(img);
-            img.onerror = reject;
-            img.src = src;
-        });
-    }
+    // --- Profile Management ---
+    function populateConfigList() {
+        configList.innerHTML = '';
+        const hasProfiles = Object.keys(savedConfigurations).length > 0;
 
-    function resizeImage(img, maxSize) {
-        const { width, height } = img;
-        let newWidth, newHeight;
-        if (width > height) { newWidth = maxSize; newHeight = (height / width) * maxSize; } 
-        else { newHeight = maxSize; newWidth = (width / height) * maxSize; }
-        const canvas = document.createElement('canvas');
-        canvas.width = newWidth; canvas.height = newHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, newWidth, newHeight);
-        return canvas;
-    }
-
-    // --- Re-integrated Processing Logic ---
-    function clamp(val, mn, mx) { return Math.max(mn, Math.min(mx, val)); }
-
-    function addDetailsText(ctx, text, x, y, width, height) {
-        const padding = Math.min(width, height) * 0.02;
-        const fontSize = Math.max(12, Math.min(width, height) * 0.03);
-        ctx.font = `bold ${fontSize}px 'Courier New', Courier, monospace`;
-        ctx.fillStyle = 'white';
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = 'black';
-        const textX = x + padding;
-        const textY = y + height - padding;
-        ctx.strokeText(text, textX, textY);
-        ctx.fillText(text, textX, textY);
-    }
-    
-    async function compressImage(img, quality) {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width; canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        const dataUrl = canvas.toDataURL('image/jpeg', quality / 100);
-        return await loadImage(dataUrl);
-    }
-
-    async function getDiffCanvas(origImg, params) {
-        const { topLevelAnalysisMode, m, x, subAnalysisMode } = params;
-       
-        if(subAnalysisMode === 'q-curve') {
-             return getQCurveCanvas(origImg, params);
-        }
-        if(subAnalysisMode === 'iterative') {
-            return getIterativeCanvas(origImg, params);
-        }
-
-        let firstImgForDiff = origImg;
-        let secondImgForDiff;
-       
-        if(topLevelAnalysisMode === 'ela') {
-             secondImgForDiff = await compressImage(origImg, 95);
-        } else { // IDA
-             const quality = Math.min(10, x);
-             secondImgForDiff = await compressImage(origImg, quality);
-        }
-
-        return createFinalCanvas(firstImgForDiff, secondImgForDiff, params);
-    }
-
-    function createFinalCanvas(img1, img2, params) {
-        const w = img1.width, h = img1.height;
-        const oCanvas = document.createElement('canvas'); oCanvas.width = w; oCanvas.height = h;
-        const oCtx = oCanvas.getContext('2d'); oCtx.drawImage(img1, 0, 0);
-        const oData = oCtx.getImageData(0, 0, w, h).data;
-
-        const cCanvas = document.createElement('canvas'); cCanvas.width = w; cCanvas.height = h;
-        const cCtx = cCanvas.getContext('2d'); cCtx.drawImage(img2, 0, 0);
-        const cData = cCtx.getImageData(0, 0, w, h).data;
-        
-        const diffCanvas = document.createElement('canvas'); diffCanvas.width = w; diffCanvas.height = h;
-        const dCtx = diffCanvas.getContext('2d');
-        const diffData = dCtx.createImageData(w, h);
-        
-        processAnalysisModes(oData, cData, diffData.data, w, h, params);
-        dCtx.putImageData(diffData, 0, 0);
-        return diffCanvas;
-    }
-
-
-    function processAnalysisModes(oData, cData, dArr, w, h, params) {
-        const { topLevelAnalysisMode, channelMode, m, x, threshold } = params;
-        const sFactor = (topLevelAnalysisMode === 'ela') ? (7*25) : (m * (x * 5) * 47);
-        
-        let maxDiff = 0;
-        for (let i = 0; i < oData.length; i += 4) {
-            maxDiff = Math.max(maxDiff, Math.abs(oData[i] - cData[i]), Math.abs(oData[i + 1] - cData[i + 1]), Math.abs(oData[i + 2] - cData[i + 2]));
-        }
-        const scale = sFactor / (maxDiff || 1);
-
-        // Apply Channel Mode
-        for (let i = 0; i < oData.length; i += 4) {
-            let r = Math.abs(oData[i] - cData[i]);
-            let g = Math.abs(oData[i+1] - cData[i+1]);
-            let b = Math.abs(oData[i+2] - cData[i+2]);
-            
-            switch(channelMode) {
-                case 'standard': dArr[i] = clamp(r*scale,0,255); dArr[i+1]=clamp(g*scale,0,255); dArr[i+2]=clamp(b*scale,0,255); break;
-                case 'luminescence': const lum=(r+g+b)/3; dArr[i]=dArr[i+1]=dArr[i+2]=clamp(lum*scale,0,255); break;
-                case 'inverted': dArr[i]=255-clamp(r*scale,0,255); dArr[i+1]=255-clamp(g*scale,0,255); dArr[i+2]=255-clamp(b*scale,0,255); break;
-                case 'heatmap': 
-                    const intensity = clamp((r+g+b)/3*scale/255,0,1); 
-                    dArr[i]=clamp(255*Math.sqrt(intensity),0,255); 
-                    dArr[i+1]=clamp(255*(1-Math.abs(intensity-0.5)*2),0,255); 
-                    dArr[i+2]=clamp(255*Math.sqrt(1-intensity),0,255); 
-                    break;
-                case 'threshold': const a=(r+g+b)/3; dArr[i]=dArr[i+1]=dArr[i+2]=(a>threshold?255:0); break;
-            }
-            dArr[i+3] = 255;
-        }
-    }
-    
-    async function getQCurveCanvas(origImg, params) {
-        const w = origImg.width, h = origImg.height;
-        const qualities = (params.topLevelAnalysisMode === 'ela') ? [95, 85, 75] : [params.x, Math.max(1, params.x-2), Math.max(1, params.x-4)];
-
-        const diff1 = await getDiffCanvas(origImg, {...params, subAnalysisMode: 'none', x: qualities[0]});
-        const diff2 = await getDiffCanvas(origImg, {...params, subAnalysisMode: 'none', x: qualities[1]});
-        const diff3 = await getDiffCanvas(origImg, {...params, subAnalysisMode: 'none', x: qualities[2]});
-
-        const ctx1 = diff1.getContext('2d'); const data1 = ctx1.getImageData(0,0,w,h).data;
-        const ctx2 = diff2.getContext('2d'); const data2 = ctx2.getImageData(0,0,w,h).data;
-        const ctx3 = diff3.getContext('2d'); const data3 = ctx3.getImageData(0,0,w,h).data;
-        
-        const finalCanvas = document.createElement('canvas'); finalCanvas.width = w; finalCanvas.height = h;
-        const fCtx = finalCanvas.getContext('2d');
-        const fData = fCtx.createImageData(w,h);
-        for(let i=0; i<fData.data.length; i+=4) {
-            fData.data[i] = (data1[i] + data1[i+1] + data1[i+2])/3; // R from first diff
-            fData.data[i+1] = (data2[i] + data2[i+1] + data2[i+2])/3; // G from second diff
-            fData.data[i+2] = (data3[i] + data3[i+1] + data3[i+2])/3; // B from third diff
-            fData.data[i+3] = 255;
-        }
-        fCtx.putImageData(fData,0,0);
-        return finalCanvas;
-    }
-    
-    async function getIterativeCanvas(origImg, params) {
-        let currentImg = origImg;
-        let diffCanvas;
-        for(let i=0; i<params.iterations; i++) {
-            diffCanvas = await getDiffCanvas(currentImg, {...params, subAnalysisMode: 'none'});
-            currentImg = diffCanvas; // The output of one iteration is the input for the next
-        }
-        return diffCanvas;
-    }
-
-    function stitchImage(orig, diff, direction) {
-        const finalCanvas = document.createElement('canvas');
-        const fCtx = finalCanvas.getContext('2d');
-        const w = orig.width, h = orig.height;
-        switch(direction) {
-            case 'left': finalCanvas.width = w * 2; finalCanvas.height = h; fCtx.drawImage(diff, 0, 0); fCtx.drawImage(orig, w, 0); break;
-            case 'right': finalCanvas.width = w * 2; finalCanvas.height = h; fCtx.drawImage(orig, 0, 0); fCtx.drawImage(diff, w, 0); break;
-            case 'top': finalCanvas.width = w; finalCanvas.height = h * 2; fCtx.drawImage(diff, 0, 0); fCtx.drawImage(orig, 0, h); break;
-            case 'bottom': finalCanvas.width = w; finalCanvas.height = h * 2; fCtx.drawImage(orig, 0, 0); fCtx.drawImage(diff, 0, h); break;
-            default: finalCanvas.width = diff.width; finalCanvas.height = diff.height; fCtx.drawImage(diff, 0, 0); break;
-        }
-        return finalCanvas;
-    }
-
-    async function processSingleImageCore(img, params) {
-        const diffCanvas = await getDiffCanvas(img, params);
-        return stitchImage(img, diffCanvas, params.stitchDirection);
-    }
-    
-    async function createGridCanvas(img, params) {
-        const resultCanvases = [];
-        for (let x = 1; x <= 10; x++) {
-            const gridParams = { ...params, x: x, stitchDirection: 'none' };
-            const processedCanvas = await getDiffCanvas(img, gridParams);
-            if (params.showDetails && params.topLevelAnalysisMode !== 'ela') {
-                addDetailsText(processedCanvas.getContext('2d'), `factor=${params.m}, degradation=${x}`, 0, 0, processedCanvas.width, processedCanvas.height);
-            }
-            resultCanvases.push(processedCanvas);
-        }
-        const gridCanvas = document.createElement('canvas');
-        gridCanvas.width = img.width * 5; gridCanvas.height = img.height * 2;
-        const gridCtx = gridCanvas.getContext('2d');
-        resultCanvases.forEach((canvasData, i) => {
-            const row = Math.floor(i / 5); const col = i % 5;
-            gridCtx.drawImage(canvasData, col * img.width, row * img.height);
-        });
-        return gridCanvas;
-    }
-
-    function resizeToMatch(imageToResize, referenceCanvas, dimension) {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const { width: origW, height: origH } = imageToResize;
-        const { width: refW, height: refH } = referenceCanvas;
-        const aspectRatio = origW / origH;
-        let newW, newH;
-        if (dimension === 'height') { newH = refH; newW = newH * aspectRatio; } 
-        else { newW = refW; newH = newW / aspectRatio; }
-        canvas.width = newW; canvas.height = newH;
-        ctx.drawImage(imageToResize, 0, 0, newW, newH);
-        return canvas;
-    }
-
-    function stitchGridWithOriginal(originalImage, gridCanvas, direction) {
-        if (direction === 'none') return gridCanvas;
-        const resizedOriginal = resizeToMatch(originalImage, gridCanvas, (direction === 'left' || direction === 'right') ? 'height' : 'width');
-        const { width: gridW, height: gridH } = gridCanvas;
-        const { width: resizedW, height: resizedH } = resizedOriginal;
-        let finalCanvas;
-        if (direction === 'left' || direction === 'right') {
-            finalCanvas = document.createElement('canvas');
-            finalCanvas.width = gridW + resizedW; finalCanvas.height = gridH;
-            const fCtx = finalCanvas.getContext('2d');
-            if (direction === 'left') { fCtx.drawImage(resizedOriginal, 0, 0); fCtx.drawImage(gridCanvas, resizedW, 0); } 
-            else { fCtx.drawImage(gridCanvas, 0, 0); fCtx.drawImage(resizedOriginal, gridW, 0); }
+        if (!hasProfiles) {
+            const placeholder = document.createElement('div');
+            placeholder.textContent = 'No profiles saved.';
+            placeholder.className = 'text-center text-gray-500 italic p-4';
+            configList.appendChild(placeholder);
         } else {
-            finalCanvas = document.createElement('canvas');
-            finalCanvas.width = gridW; finalCanvas.height = gridH + resizedH;
-            const fCtx = finalCanvas.getContext('2d');
-            if (direction === 'top') { fCtx.drawImage(resizedOriginal, 0, 0); fCtx.drawImage(gridCanvas, 0, resizedH); } 
-            else { fCtx.drawImage(gridCanvas, 0, 0); fCtx.drawImage(resizedOriginal, 0, gridH); }
-        }
-        return finalCanvas;
-    }
-
-    // --- Main UI-Threaded Processing Functions ---
-    
-    async function processImageFile(file, isGrid=false) {
-        if(!file) return;
-        setProcessingState(true, isGrid ? 'Creating Grid...' : 'Processing...');
-        
-        await new Promise(r => setTimeout(r, 50));
-        
-        const img = await loadImage(URL.createObjectURL(file));
-        const params = {
-            topLevelAnalysisMode: document.querySelector('input[name="topLevelAnalysisMode"]:checked').value,
-            m: parseInt(mInput.value), x: parseInt(xInput.value),
-            stitchDirection: document.querySelector('input[name="stitchDirection"]:checked').value,
-            channelMode: document.querySelector('input[name="channelMode"]:checked').value,
-            subAnalysisMode: document.querySelector('input[name="subAnalysisMode"]:checked').value,
-            showDetails: detailsCheck.checked,
-            threshold: parseInt(thresholdSlider.value),
-            iterations: parseInt(iterativeSlider.value)
-        };
-        
-        let finalCanvas;
-        if(isGrid){
-            const gridCanvas = await createGridCanvas(img, params);
-            finalCanvas = stitchGridWithOriginal(img, gridCanvas, params.stitchDirection);
-        } else {
-            finalCanvas = await processSingleImageCore(img, params);
-            if(params.showDetails && params.stitchDirection === 'none' && params.topLevelAnalysisMode !== 'ela') {
-                 addDetailsText(finalCanvas.getContext('2d'), `factor=${params.m}, degradation=${params.x}`, 0, 0, finalCanvas.width, finalCanvas.height);
-            }
-        }
-        
-        drawResult(finalCanvas);
-        setProcessingState(false);
-    }
-    
-    async function processBatch(isGrid) {
-        if (loadedBatchFiles.length === 0) return;
-        setProcessingState(true, 'Starting batch process...');
-        batchCanvases = [];
-        batchSaveBtn.classList.add('hidden');
-        progressBar.style.width = '0%';
-        const maxSize = parseInt(maxSizeInput.value) || 1000;
-        
-        for (let i = 0; i < loadedBatchFiles.length; i++) {
-            const file = loadedBatchFiles[i];
-            const progress = ((i + 1) / loadedBatchFiles.length) * 100;
-            setProcessingState(true, `Processing ${i + 1} of ${loadedBatchFiles.length}: ${file.name}`);
-            progressBar.style.width = `${progress}%`;
-
-            await new Promise(r => setTimeout(r, 20));
-            
-            const originalImage = await loadImage(URL.createObjectURL(file));
-            const resizedImage = resizeImage(originalImage, maxSize);
-            
-            const params = {
-                topLevelAnalysisMode: document.querySelector('input[name="topLevelAnalysisMode"]:checked').value,
-                m: parseInt(mInput.value), x: parseInt(xInput.value),
-                stitchDirection: document.querySelector('input[name="stitchDirection"]:checked').value,
-                channelMode: document.querySelector('input[name="channelMode"]:checked').value,
-                subAnalysisMode: document.querySelector('input[name="subAnalysisMode"]:checked').value,
-                showDetails: detailsCheck.checked,
-                threshold: parseInt(thresholdSlider.value),
-                iterations: parseInt(iterativeSlider.value)
-            };
-            
-            let finalCanvas;
-            if(isGrid){
-                const gridCanvas = await createGridCanvas(resizedImage, params);
-                finalCanvas = stitchGridWithOriginal(resizedImage, gridCanvas, params.stitchDirection);
-            } else {
-                finalCanvas = await processSingleImageCore(resizedImage, params);
-                 if(params.showDetails && params.stitchDirection === 'none' && params.topLevelAnalysisMode !== 'ela') {
-                    addDetailsText(finalCanvas.getContext('2d'), `factor=${params.m}, degradation=${params.x}`, 0, 0, finalCanvas.width, finalCanvas.height);
+            for (const name in savedConfigurations) {
+                const item = document.createElement('div');
+                item.textContent = name;
+                item.dataset.name = name;
+                item.className = 'p-2 rounded-md cursor-pointer hover:bg-violet-200 dark:hover:bg-violet-800 transition-colors';
+                if (name === selectedProfileName) {
+                    item.classList.add('bg-violet-300', 'dark:bg-violet-700', 'font-semibold');
                 }
+                configList.appendChild(item);
             }
-            
-            const originalFileName = file.name.split('.').slice(0, -1).join('.');
-            const name = `${originalFileName}_${isGrid ? 'grid' : 'standard'}`;
-            batchCanvases.push({ name: name, canvas: finalCanvas, params: params });
-            drawResult(finalCanvas);
         }
+        loadConfigBtn.disabled = !selectedProfileName;
+        deleteConfigBtn.disabled = !selectedProfileName;
+        exportConfigBtn.disabled = !hasProfiles;
+    }
 
-        setProcessingState(false, 'Batch processing complete.');
-        processingIndicator.textContent = `${batchCanvases.length} images processed and are ready to save.`;
-        if (batchCanvases.length > 0) {
-            batchSaveBtn.classList.remove('hidden');
+    function handleProfileSelection(event) {
+        const target = event.target.closest('[data-name]');
+        if (target) {
+            const name = target.dataset.name;
+            selectedProfileName = (selectedProfileName === name) ? null : name; // Toggle selection
+            populateConfigList(); // Re-render to show selection highlight
         }
     }
 
-    // --- Saving Functions ---
-    async function saveSingleResult() {
-        if (!loadedFile) return;
-        const dataURL = resultCanvas.toDataURL('image/png');
-        downloadDataURL(dataURL, `${originalFileName}_Forensics.png`);
+    function saveConfigsToLocalStorage() {
+        localStorage.setItem('forensicsToolProfiles', JSON.stringify(savedConfigurations));
     }
-    
-    async function saveBatchResults() {
-        if (!batchCanvases || batchCanvases.length === 0) return;
-        setProcessingState(true, 'Preparing downloads...');
 
-        const useAdvanced = advancedSettingsCheck.checked;
-        const sizeReduction = useAdvanced ? parseInt(reduceSizeSlider.value) / 100 : 1.0;
-        const format = useAdvanced ? document.querySelector('input[name="fileFormat"]:checked').value : 'jpg';
-        const quality = useAdvanced ? parseInt(jpgQualitySlider.value) / 100 : 0.8;
-        const downloadType = useAdvanced ? document.querySelector('input[name="downloadType"]:checked').value : 'individual';
-        const mimeType = `image/${format === 'jpg' ? 'jpeg' : 'png'}`;
-        
-        const getFinalFileName = (item) => {
-            if(!useAdvanced) return `${item.name}.${format}`;
-            let pattern = namingPatternInput.value;
-            pattern = pattern.replace('{fname}', item.name.replace(`_${item.params.isGrid ? 'grid' : 'standard'}`, ''))
-                          .replace('{mode}', item.params.topLevelAnalysisMode)
-                          .replace('{channel}', item.params.channelMode)
-                          .replace('{sub}', item.params.subAnalysisMode)
-                          .replace(/{m}|{factor}/g, item.params.m)
-                          .replace(/{x}|{degradation}/g, item.params.x);
-            if (item.params.subAnalysisMode === 'iterative') {
-                 pattern = pattern.replace('{iterations}', item.params.iterations);
-            } else {
-                 pattern = pattern.replace('-{iterations}','').replace('{iterations}','');
-            }
-            return pattern + `.${format}`;
-        };
+    function loadConfigsFromLocalStorage() {
+        try {
+            const profilesJSON = localStorage.getItem('forensicsToolProfiles');
+            if (profilesJSON) savedConfigurations = JSON.parse(profilesJSON);
+        } catch(e) { console.error("Could not load profiles", e); savedConfigurations = {}; }
+    }
 
-        const getOutputFile = (item) => {
-            return new Promise(resolve => {
-                const sourceCanvas = item.canvas;
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = sourceCanvas.width * sizeReduction;
-                tempCanvas.height = sourceCanvas.height * sizeReduction;
-                tempCanvas.getContext('2d').drawImage(sourceCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
-                
-                if (downloadType === 'zip') {
-                    tempCanvas.toBlob(resolve, mimeType, quality);
+    function saveCurrentConfig() {
+        const name = configNameInput.value.trim();
+        if (!name) {
+            alert('Please enter a name for this profile.');
+            return;
+        }
+        savedConfigurations[name] = collectCurrentSettings();
+        selectedProfileName = name; // Auto-select the newly saved profile
+        saveConfigsToLocalStorage();
+        populateConfigList();
+        configNameInput.value = ''; // Clear input field
+    }
+
+    function loadSelectedConfig() {
+        if (!selectedProfileName || !savedConfigurations[selectedProfileName]) {
+            alert('Please select a profile to load.');
+            return;
+        }
+        applySettings(savedConfigurations[selectedProfileName]);
+        saveCurrentUIToLocalStorage(); 
+    }
+
+    function deleteSelectedConfig() {
+        if (!selectedProfileName || !savedConfigurations[selectedProfileName]) {
+            alert('Please select a profile to delete.');
+            return;
+        }
+        if (confirm(`Are you sure you want to delete the profile "${selectedProfileName}"?`)) {
+            delete savedConfigurations[selectedProfileName];
+            selectedProfileName = null;
+            saveConfigsToLocalStorage();
+            populateConfigList();
+        }
+    }
+
+    function exportConfigs() {
+        if (Object.keys(savedConfigurations).length === 0) {
+            alert('No profiles to export.');
+            return;
+        }
+        const jsonString = JSON.stringify(savedConfigurations, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        downloadBlob(blob, 'forensics-profiles.json');
+    }
+
+    function handleImportFile(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const importedConfigs = JSON.parse(e.target.result);
+                if (typeof importedConfigs !== 'object' || importedConfigs === null) throw new Error('Invalid file format.');
+                if (confirm('Merge imported profiles with existing ones? (Cancel to replace)')) {
+                    Object.assign(savedConfigurations, importedConfigs);
                 } else {
-                    resolve(tempCanvas.toDataURL(mimeType, quality));
+                    savedConfigurations = importedConfigs;
                 }
-            });
+                selectedProfileName = null;
+                saveConfigsToLocalStorage();
+                populateConfigList();
+                alert('Profiles imported successfully!');
+            } catch (error) {
+                alert(`Error importing file: ${error.message}`);
+            }
         };
-
-        if (downloadType === 'zip') {
-            const zip = new JSZip();
-            for (let i = 0; i < batchCanvases.length; i++) {
-                const item = batchCanvases[i];
-                const finalName = getFinalFileName(item);
-                setProcessingState(true, `Zipping ${i + 1} of ${batchCanvases.length}: ${finalName}`);
-                const blob = await getOutputFile(item);
-                zip.file(finalName, blob);
-            }
-            setProcessingState(true, 'Generating ZIP file...');
-            const content = await zip.generateAsync({ type: "blob", compression: "STORE" });
-            downloadBlob(content, 'IDA_Batch_Results.zip');
-
-        } else { // Individual downloads
-             for (let i = 0; i < batchCanvases.length; i++) {
-                const item = batchCanvases[i];
-                const finalName = getFinalFileName(item);
-                setProcessingState(true, `Downloading ${i + 1} of ${batchCanvases.length}: ${finalName}`);
-                const dataURL = await getOutputFile(item);
-                downloadDataURL(dataURL, finalName);
-                await new Promise(resolve => setTimeout(resolve, 250)); 
-            }
-        }
-        
-        setProcessingState(false);
-        processingIndicator.textContent = `Finished downloading ${batchCanvases.length} files.`;
-        batchCanvases = [];
-    }
-
-    function downloadDataURL(dataURL, filename) {
-        const link = document.createElement('a'); link.href = dataURL; link.download = filename;
-        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        reader.readAsText(file);
+        importConfigFileInput.value = '';
     }
     
-    function downloadBlob(blob, filename) {
-        const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = filename;
-        document.body.appendChild(link); link.click(); document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
-    }
-
-    // --- Settings Persistence ---
-    function saveSettings() {
-        try {
-            const settings = {
-                topLevelAnalysisMode: document.querySelector('input[name="topLevelAnalysisMode"]:checked').value,
-                m: mInput.value,
-                x: xInput.value,
-                channelMode: document.querySelector('input[name="channelMode"]:checked').value,
-                subAnalysisMode: document.querySelector('input[name="subAnalysisMode"]:checked').value,
-                iterations: iterativeSlider.value,
-                stitchDirection: document.querySelector('input[name="stitchDirection"]:checked').value,
-                showDetails: detailsCheck.checked,
-                maxSize: maxSizeInput.value,
-                advanced: advancedSettingsCheck.checked,
-                namingPattern: namingPatternInput.value,
-                reduceSize: reduceSizeSlider.value,
-                format: document.querySelector('input[name="fileFormat"]:checked').value,
-                quality: jpgQualitySlider.value,
-                stripExif: stripExifCheck.checked,
-                downloadType: document.querySelector('input[name="downloadType"]:checked').value,
-                darkMode: document.documentElement.classList.contains('dark'),
-                threshold: thresholdSlider.value,
-            };
-            localStorage.setItem('idaSettings', JSON.stringify(settings));
-        } catch (e) { console.error("Could not save settings.", e); }
-    }
-
-    function loadSettings() {
-        try {
-            const settingsJSON = localStorage.getItem('idaSettings');
-            if (!settingsJSON) return;
-            const settings = JSON.parse(settingsJSON);
-            
-            document.querySelector(`input[name="topLevelAnalysisMode"][value="${settings.topLevelAnalysisMode || 'ida'}"]`).checked = true;
-            mInput.value = settings.m; mVal.textContent = settings.m;
-            xInput.value = settings.x; xVal.textContent = settings.x;
-            document.querySelector(`input[name="channelMode"][value="${settings.channelMode || 'standard'}"]`).checked = true;
-            document.querySelector(`input[name="subAnalysisMode"][value="${settings.subAnalysisMode || 'none'}"]`).checked = true;
-            iterativeSlider.value = settings.iterations || 3; iterativeVal.textContent = settings.iterations || 3;
-            document.querySelector(`input[name="stitchDirection"][value="${settings.stitchDirection}"]`).checked = true;
-            detailsCheck.checked = settings.showDetails;
-            maxSizeInput.value = settings.maxSize;
-            advancedSettingsCheck.checked = settings.advanced;
-            namingPatternInput.value = settings.namingPattern;
-            reduceSizeSlider.value = settings.reduceSize; reduceSizeVal.textContent = settings.reduceSize;
-            document.querySelector(`input[name="fileFormat"][value="${settings.format}"]`).checked = true;
-            jpgQualitySlider.value = settings.quality; jpgQualityVal.textContent = settings.quality;
-            stripExifCheck.checked = settings.stripExif;
-            document.querySelector(`input[name="downloadType"][value="${settings.downloadType}"]`).checked = true;
-            thresholdSlider.value = settings.threshold || 30; thresholdVal.textContent = settings.threshold || 30;
-            
-            if (settings.darkMode) { document.documentElement.classList.add('dark'); } 
-            else { document.documentElement.classList.remove('dark'); }
-            
-            updateDarkModeIcon();
-            advancedSettingsContainer.classList.toggle('hidden', !settings.advanced);
-            jpgQualityContainer.classList.toggle('hidden', settings.format !== 'jpg');
-            zipWarning.classList.toggle('hidden', settings.downloadType !== 'zip');
-            batchSaveBtn.textContent = settings.downloadType === 'zip' ? 'Save as ZIP' : 'Save All Individually';
-            
-            const mode = settings.topLevelAnalysisMode || 'ida';
-            const isELA = mode === 'ela';
-            idaControls.classList.toggle('button-disabled', isELA);
-            mInput.disabled = isELA;
-            xInput.disabled = isELA;
-            gridBtn.disabled = isELA;
-            batchProcessGridBtn.disabled = isELA;
-
-            const currentChannelMode = document.querySelector('input[name="channelMode"]:checked').value;
-            thresholdContainer.classList.toggle('hidden', currentChannelMode !== 'threshold');
-
-            const currentSubMode = document.querySelector('input[name="subAnalysisMode"]:checked').value;
-            iterativeContainer.classList.toggle('hidden', currentSubMode !== 'iterative');
-
-        } catch (e) {
-            console.error("Could not load settings.", e);
-            localStorage.removeItem('idaSettings');
-        }
-    }
+    // --- App Initialization ---
+    document.addEventListener('DOMContentLoaded', () => {
+        loadLastUIFromLocalStorage();
+        loadConfigsFromLocalStorage();
+        populateConfigList();
+        initializeEventListeners();
+    });
     
-    document.addEventListener('DOMContentLoaded', loadSettings);
-    
-    async function processVideoFile(file) {
-        alert("Video processing is not supported in this version.");
-        setProcessingState(false);
-    }
-  </script>
+</script>
 </body>
 </html>
-
