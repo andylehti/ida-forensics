@@ -70,9 +70,6 @@
                 <button id="analysisTab" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-violet-500 text-violet-600">
                     Analysis Tool
                 </button>
-                <button id="basicsTab" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600">
-                    Basics
-                </button>
                 <button id="documentationTab" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600">
                     Documentation
                 </button>
@@ -270,20 +267,16 @@
             </div>
         </div>
         
-        <div id="basicsContainer" class="hidden prose dark:prose-invert max-w-none">
-            </div>
         <div id="documentationContainer" class="hidden prose dark:prose-invert max-w-none">
-            </div>
+        </div>
     </div>
 
 <script>
     // === CONFIG ===
-    const MARKDOWN_URL = 'https://raw.githubusercontent.com/markedjs/marked/master/README.md';
     const DOCS_MARKDOWN_URL = 'readme.md';
 
     // === DOM Elements ===
     const analysisContainer = document.getElementById('analysisContainer');
-    const basicsContainer = document.getElementById('basicsContainer');
     const documentationContainer = document.getElementById('documentationContainer');
     const singleFileView = document.getElementById('singleFileView');
     const batchView = document.getElementById('batchView');
@@ -294,7 +287,6 @@
     const resultCanvas = document.getElementById('resultCanvas');
     const rCtx = resultCanvas.getContext('2d');
     const analysisTab = document.getElementById('analysisTab');
-    const basicsTab = document.getElementById('basicsTab');
     const documentationTab = document.getElementById('documentationTab');
     const toggleViewBtn = document.getElementById('toggleViewBtn');
     const darkModeToggle = document.getElementById('darkModeToggle');
@@ -360,7 +352,6 @@
         toggleViewBtn.addEventListener('click', toggleBatchMode);
         darkModeToggle.addEventListener('click', toggleDarkMode);
         analysisTab.addEventListener('click', () => switchTab('analysis'));
-        basicsTab.addEventListener('click', () => switchTab('basics'));
         documentationTab.addEventListener('click', () => switchTab('documentation'));
         saveConfigBtn.addEventListener('click', saveCurrentConfig);
         loadConfigBtn.addEventListener('click', loadSelectedConfig);
@@ -400,7 +391,6 @@
     function switchTab(tabName) {
         const tabs = [
             { name: 'analysis', btn: analysisTab, container: analysisContainer },
-            { name: 'basics', btn: basicsTab, container: basicsContainer },
             { name: 'documentation', btn: documentationTab, container: documentationContainer }
         ];
 
@@ -412,9 +402,7 @@
             tab.container.classList.toggle('hidden', !isActive);
         });
 
-        if (tabName === 'basics') {
-            loadAndRenderMarkdown(basicsContainer, MARKDOWN_URL);
-        } else if (tabName === 'documentation') {
+        if (tabName === 'documentation') {
             loadAndRenderMarkdown(documentationContainer, DOCS_MARKDOWN_URL);
         }
     }
