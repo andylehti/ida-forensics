@@ -73,6 +73,9 @@
                 <button id="basicsTab" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600">
                     Basics
                 </button>
+                <button id="documentationTab" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600">
+                    Documentation
+                </button>
             </nav>
         </div>
 
@@ -188,29 +191,29 @@
                 </div>
             </div>
             
-            <div id="singleFileButtons" class="flex space-x-4 justify-center">
-                <button id="processBtn" class="bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-6 rounded-full transition-colors">Process</button>
-                <button id="gridBtn" class="bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-6 rounded-full transition-colors">Grid Analysis</button>
-                <button id="standardBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 font-bold py-2 px-6 rounded-full transition-colors">STANDARD</button>
-                <button id="saveBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 font-bold py-2 px-6 rounded-full transition-colors">Save Image</button>
+            <div id="singleFileButtons" class="flex flex-wrap justify-center gap-2">
+                <button id="processBtn" class="bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-4 md:px-6 rounded-full transition-colors">Process</button>
+                <button id="gridBtn" class="bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-4 md:px-6 rounded-full transition-colors">Grid Analysis</button>
+                <button id="standardBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 font-bold py-2 px-4 md:px-6 rounded-full transition-colors">STANDARD</button>
+                <button id="saveBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 font-bold py-2 px-4 md:px-6 rounded-full transition-colors">Save Image</button>
             </div>
 
             <div id="batchButtons" class="hidden flex-col items-center justify-center space-y-4">
-                <div class="flex space-x-4 justify-center">
-                    <button id="batchProcessStandardBtn" class="bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-6 rounded-full transition-colors">Process All (Standard)</button>
-                    <button id="batchProcessGridBtn" class="bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-6 rounded-full transition-colors">Process All (Grid)</button>
+                <div class="flex flex-wrap justify-center gap-2">
+                    <button id="batchProcessStandardBtn" class="bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-4 md:px-6 rounded-full transition-colors">Process All (Standard)</button>
+                    <button id="batchProcessGridBtn" class="bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-4 md:px-6 rounded-full transition-colors">Process All (Grid)</button>
                 </div>
                 
                 <div id="batchRangeContainer" class="w-full pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
-                     <div class="flex flex-col items-center justify-center gap-2">
-                        <div class="flex items-center gap-4">
-                            <label for="rangeStartInput">Process x from</label>
-                            <input type="number" id="rangeStartInput" value="5" class="bg-gray-200 dark:bg-gray-700 rounded-lg p-2 w-24 text-center">
-                            <label for="rangeEndInput">to</label>
-                            <input type="number" id="rangeEndInput" value="10" class="bg-gray-200 dark:bg-gray-700 rounded-lg p-2 w-24 text-center">
-                        </div>
-                        <button id="batchProcessRangeBtn" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-6 rounded-full transition-colors mt-2">Process IDA Range</button>
-                     </div>
+                         <div class="flex flex-col items-center justify-center gap-2">
+                             <div class="flex items-center gap-4">
+                                 <label for="rangeStartInput">Process x from</label>
+                                 <input type="number" id="rangeStartInput" value="5" class="bg-gray-200 dark:bg-gray-700 rounded-lg p-2 w-24 text-center">
+                                 <label for="rangeEndInput">to</label>
+                                 <input type="number" id="rangeEndInput" value="10" class="bg-gray-200 dark:bg-gray-700 rounded-lg p-2 w-24 text-center">
+                             </div>
+                             <button id="batchProcessRangeBtn" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 md:px-6 rounded-full transition-colors mt-2">Process IDA Range</button>
+                           </div>
                 </div>
 
                 <div class="w-full pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
@@ -254,7 +257,7 @@
                     </div>
                 </div>
 
-                <button id="batchSaveBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full transition-colors hidden">Save All Images</button>
+                <button id="batchSaveBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 md:px-6 rounded-full transition-colors hidden">Save All Images</button>
             </div>
             
             <div id="processing-indicator" class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400 min-h-[1.25rem]"></div>
@@ -269,15 +272,19 @@
         
         <div id="basicsContainer" class="hidden prose dark:prose-invert max-w-none">
             </div>
+        <div id="documentationContainer" class="hidden prose dark:prose-invert max-w-none">
+            </div>
     </div>
 
 <script>
     // === CONFIG ===
     const MARKDOWN_URL = 'https://raw.githubusercontent.com/markedjs/marked/master/README.md';
+    const DOCS_MARKDOWN_URL = 'readme.md';
 
     // === DOM Elements ===
     const analysisContainer = document.getElementById('analysisContainer');
     const basicsContainer = document.getElementById('basicsContainer');
+    const documentationContainer = document.getElementById('documentationContainer');
     const singleFileView = document.getElementById('singleFileView');
     const batchView = document.getElementById('batchView');
     const singleFileButtons = document.getElementById('singleFileButtons');
@@ -288,6 +295,7 @@
     const rCtx = resultCanvas.getContext('2d');
     const analysisTab = document.getElementById('analysisTab');
     const basicsTab = document.getElementById('basicsTab');
+    const documentationTab = document.getElementById('documentationTab');
     const toggleViewBtn = document.getElementById('toggleViewBtn');
     const darkModeToggle = document.getElementById('darkModeToggle');
     const fileInput = document.getElementById('fileInput');
@@ -353,6 +361,7 @@
         darkModeToggle.addEventListener('click', toggleDarkMode);
         analysisTab.addEventListener('click', () => switchTab('analysis'));
         basicsTab.addEventListener('click', () => switchTab('basics'));
+        documentationTab.addEventListener('click', () => switchTab('documentation'));
         saveConfigBtn.addEventListener('click', saveCurrentConfig);
         loadConfigBtn.addEventListener('click', loadSelectedConfig);
         deleteConfigBtn.addEventListener('click', deleteSelectedConfig);
@@ -388,8 +397,42 @@
     
     // === UI and State Management ===
     
-    function switchTab(tabName) { const isBasics = tabName === 'basics'; analysisTab.classList.toggle('border-violet-500', !isBasics); analysisTab.classList.toggle('text-violet-600', !isBasics); analysisTab.classList.toggle('border-transparent', isBasics); basicsTab.classList.toggle('border-violet-500', isBasics); basicsTab.classList.toggle('text-violet-600', isBasics); basicsTab.classList.toggle('border-transparent', !isBasics); analysisContainer.classList.toggle('hidden', isBasics); basicsContainer.classList.toggle('hidden', !isBasics); if (isBasics) loadAndRenderMarkdown(); }
-    async function loadAndRenderMarkdown() { basicsContainer.innerHTML = '<p>Loading content...</p>'; try { const response = await fetch(MARKDOWN_URL); if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`); const markdownText = await response.text(); basicsContainer.innerHTML = marked.parse(markdownText); } catch (error) { console.error('Failed to load markdown:', error); basicsContainer.innerHTML = `<p class="text-red-500">Failed to load content. Please check the console for details.</p>`; } }
+    function switchTab(tabName) {
+        const tabs = [
+            { name: 'analysis', btn: analysisTab, container: analysisContainer },
+            { name: 'basics', btn: basicsTab, container: basicsContainer },
+            { name: 'documentation', btn: documentationTab, container: documentationContainer }
+        ];
+
+        tabs.forEach(tab => {
+            const isActive = tab.name === tabName;
+            tab.btn.classList.toggle('border-violet-500', isActive);
+            tab.btn.classList.toggle('text-violet-600', isActive);
+            tab.btn.classList.toggle('border-transparent', !isActive);
+            tab.container.classList.toggle('hidden', !isActive);
+        });
+
+        if (tabName === 'basics') {
+            loadAndRenderMarkdown(basicsContainer, MARKDOWN_URL);
+        } else if (tabName === 'documentation') {
+            loadAndRenderMarkdown(documentationContainer, DOCS_MARKDOWN_URL);
+        }
+    }
+
+    async function loadAndRenderMarkdown(container, url) {
+        if (container.hasAttribute('data-loaded')) return;
+        container.innerHTML = '<p>Loading content...</p>';
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const markdownText = await response.text();
+            container.innerHTML = marked.parse(markdownText);
+            container.setAttribute('data-loaded', 'true');
+        } catch (error) {
+            console.error(`Failed to load markdown from ${url}:`, error);
+            container.innerHTML = `<p class="text-red-500">Failed to load content. Please check the console for details.</p>`;
+        }
+    }
     function toggleBatchMode() { const isBatchMode = singleFileView.classList.toggle('hidden'); batchView.classList.toggle('hidden'); singleFileButtons.classList.toggle('hidden'); batchButtons.classList.toggle('hidden'); toggleViewBtn.textContent = isBatchMode ? 'Switch to Single Mode' : 'Switch to Batch Mode'; stitchLabel.textContent = isBatchMode ? 'Stitch Original to Grid:' : 'Stitch Direction:'; clearCanvas(); }
     function toggleDarkMode() { document.documentElement.classList.toggle('dark'); updateDarkModeIcon(); saveCurrentUIToLocalStorage(); }
     function updateDarkModeIcon() { const isDark = document.documentElement.classList.contains('dark'); document.getElementById('darkModeIcon').innerHTML = isDark ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.354 5.354l-.707.707M6.346 6.346l-.707-.707m12.728 0l-.707.707M6.346 17.654l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>` : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>`; }
