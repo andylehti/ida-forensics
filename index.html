@@ -2,7 +2,7 @@
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Image Degradation Forensic Image Analysis Toolkit</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"></script>
@@ -33,7 +33,7 @@
         /* Custom UI Elements */
         .drop-area { transition: all 0.2s ease-in-out; }
         .drop-area.drag-over { border-color: #8b5cf6; background-color: rgba(139, 92, 246, 0.05); transform: scale(1.01); }
-        .control-disabled { opacity: 0.4; pointer-events: none; filter: grayscale(100%); }
+        .control-disabled { opacity: 0.4; pointer-events: none; filter: grayscale(100%); transition: opacity 0.3s; }
         
         /* Prose styling for docs */
         .prose h1 { font-size: 1.75rem; font-weight: 700; margin-top: 1.5em; margin-bottom: 0.5em; }
@@ -43,17 +43,18 @@
         
         /* Range Sliders */
         input[type=range] { -webkit-appearance: none; background: transparent; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #8b5cf6; cursor: pointer; margin-top: -6px; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #8b5cf6; cursor: pointer; margin-top: -6px; box-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: transform 0.1s; }
+        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #e2e8f0; border-radius: 2px; }
         .dark input[type=range]::-webkit-slider-runnable-track { background: #475569; }
     </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col transition-colors overflow-hidden">
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 flex flex-col h-[100dvh] overflow-hidden transition-colors">
     
     <!-- Top Navigation Bar -->
-    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-16 flex items-center justify-between px-4 sm:px-6 shrink-0 z-20">
+    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-16 flex items-center justify-between px-4 sm:px-6 shrink-0 z-30 shadow-sm relative">
         <div class="flex items-center gap-3">
-            <div class="bg-violet-600 p-1.5 rounded-lg text-white">
+            <div class="bg-violet-600 p-1.5 rounded-lg text-white shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
             </div>
             <h1 class="text-lg font-bold tracking-tight hidden sm:block">Forensic Image Toolkit</h1>
@@ -61,14 +62,14 @@
         </div>
         
         <div class="flex items-center gap-2 sm:gap-6 flex-1 justify-center max-w-md mx-auto">
-            <nav class="flex space-x-1 bg-slate-100 dark:bg-slate-700/50 p-1 rounded-lg w-full justify-between" id="tabs">
+            <nav class="flex space-x-1 bg-slate-100 dark:bg-slate-700/50 p-1 rounded-lg w-full justify-between border border-slate-200 dark:border-slate-700/50" id="tabs">
                 <button id="tabMedia" class="tab-btn active px-3 py-1.5 text-sm font-medium rounded-md bg-white dark:bg-slate-600 shadow-sm text-violet-600 dark:text-violet-300 transition-all flex-1 text-center">Media</button>
                 <button id="tabBatch" class="tab-btn px-3 py-1.5 text-sm font-medium rounded-md text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-all flex-1 text-center">Batch</button>
                 <button id="tabDocs" class="tab-btn px-3 py-1.5 text-sm font-medium rounded-md text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-all flex-1 text-center">Docs</button>
             </nav>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1 sm:gap-2">
             <button id="infoToggle" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors" title="About Toolkit">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
             </button>
@@ -78,11 +79,11 @@
         </div>
     </header>
 
-    <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+    <!-- Main Content Area Wrapper -->
+    <div class="flex-1 overflow-y-auto lg:overflow-hidden flex flex-col lg:flex-row relative">
         
         <!-- LEFT: Preview & Upload Area -->
-        <main class="flex-1 flex flex-col overflow-y-auto bg-slate-50 dark:bg-slate-900/50 p-4 sm:p-6 lg:p-8">
+        <main class="flex-1 flex flex-col lg:overflow-y-auto bg-slate-50 dark:bg-slate-900/50 p-4 sm:p-6 lg:p-8">
             
             <!-- Analysis Container -->
             <div id="analysisContainer" class="max-w-5xl mx-auto w-full flex flex-col items-center">
@@ -90,7 +91,7 @@
                 <!-- UNIFIED MEDIA TAB (Image + Video) -->
                 <div id="mediaView" class="w-full max-w-2xl mb-6">
                     <div id="drop-area-media" class="drop-area border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-8 text-center bg-white dark:bg-slate-800 shadow-sm cursor-pointer hover:border-violet-400 dark:hover:border-violet-500">
-                        <svg class="mx-auto h-12 w-12 text-slate-400 dark:text-slate-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        <svg class="mx-auto h-12 w-12 text-slate-400 dark:text-slate-500 mb-4 transition-transform group-hover:scale-110" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                         <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">Drag & Drop an Image or Video</p>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">or click to browse</p>
                         <input id="mediaFileInput" type="file" accept="image/*, video/*" class="hidden">
@@ -100,7 +101,7 @@
                     <div id="videoSettingsPanel" class="hidden flex-col sm:flex-row items-center justify-center gap-3 mt-4 bg-white dark:bg-slate-800 p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
                         <div class="flex items-center gap-2">
                             <span class="text-sm font-medium text-slate-600 dark:text-slate-300">FPS:</span>
-                            <div id="fpsDisplay" class="text-sm font-bold text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/30 px-2 py-1 rounded">Auto</div>
+                            <div id="fpsDisplay" class="text-sm font-bold text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/30 px-2 py-1 rounded border border-violet-100 dark:border-violet-800">Auto</div>
                             <button id="overrideFpsBtn" class="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 underline">Edit</button>
                             <input type="number" id="fpsInput" value="30" min="1" max="60" class="hidden w-16 bg-slate-100 dark:bg-slate-700 text-sm px-2 py-1 rounded border border-slate-300 dark:border-slate-600 text-center">
                         </div>
@@ -115,7 +116,7 @@
                             </select>
                         </div>
                     </div>
-                    <div id="mediaInfo" class="text-center text-sm text-slate-500 mt-3 h-5 font-medium"></div>
+                    <div id="mediaInfo" class="text-center text-sm text-slate-500 mt-3 h-5 font-medium truncate px-4"></div>
                 </div>
 
                 <!-- BATCH TAB -->
@@ -134,11 +135,11 @@
                     <div id="progressBarContainer" class="w-full max-w-2xl bg-slate-200 dark:bg-slate-700 rounded-full h-2 mb-4 hidden overflow-hidden shadow-inner">
                         <div id="progressBar" class="bg-violet-600 h-2 rounded-full transition-all duration-200 ease-out" style="width: 0%"></div>
                     </div>
-                    <div id="processing-indicator" class="text-sm font-semibold text-violet-600 dark:text-violet-400 mb-4 h-5 tracking-wide"></div>
+                    <div id="processing-indicator" class="text-sm font-semibold text-violet-600 dark:text-violet-400 mb-4 h-5 tracking-wide flex items-center justify-center gap-2"></div>
 
-                    <div id="canvas-container" class="relative w-full border border-slate-200 dark:border-slate-700 rounded-xl p-1 bg-white dark:bg-slate-800 shadow-sm flex justify-center items-center min-h-[200px] overflow-hidden">
-                        <p id="canvasPlaceholder" class="absolute text-slate-400 dark:text-slate-500 text-sm font-medium pointer-events-none">Upload an item to begin analysis</p>
-                        <canvas id="resultCanvas" class="max-w-full h-auto rounded-lg shadow-inner object-contain max-h-[65vh] opacity-0 transition-opacity duration-300"></canvas>
+                    <div id="canvas-container" class="relative w-full max-w-4xl border border-slate-200 dark:border-slate-700 rounded-xl p-1 bg-white dark:bg-slate-800 shadow-sm flex justify-center items-center min-h-[200px] overflow-hidden">
+                        <p id="canvasPlaceholder" class="absolute text-slate-400 dark:text-slate-500 text-sm font-medium pointer-events-none transition-opacity duration-300">Upload an item to begin analysis</p>
+                        <canvas id="resultCanvas" class="max-w-full h-auto rounded-lg shadow-inner object-contain max-h-[60vh] opacity-0 transition-opacity duration-300"></canvas>
                     </div>
 
                     <!-- Action Result Area -->
@@ -161,13 +162,17 @@
         </main>
 
         <!-- RIGHT: Sidebar Controls -->
-        <aside id="sidebarControls" class="w-full lg:w-[420px] bg-white dark:bg-slate-800 border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-700 flex flex-col shrink-0 lg:h-[calc(100vh-4rem)] z-10 transition-transform">
+        <!-- Stacked on mobile flowing naturally, but keeping the bottom bar sticky. On Desktop side-by-side with independent scroll -->
+        <aside id="sidebarControls" class="w-full lg:w-[420px] shrink-0 flex flex-col bg-white dark:bg-slate-800 border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-700 relative z-20 shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)] lg:shadow-none">
             
-            <div class="flex-1 overflow-y-auto p-5 space-y-6 no-scrollbar pb-24">
+            <div class="flex-1 px-5 py-6 space-y-6 lg:overflow-y-auto custom-scrollbar">
                 
                 <!-- Section 1: Analysis Mode -->
                 <div>
-                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">Primary Mode</h3>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        Primary Mode
+                    </h3>
                     <div class="grid grid-cols-2 gap-2">
                         <label class="cursor-pointer">
                             <input type="radio" name="topLevelAnalysisMode" value="ida" class="peer sr-only" checked>
@@ -209,18 +214,21 @@
 
                 <!-- Section 2: Filters & Sub-Analysis -->
                 <div>
-                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">Filters & Sub-Analysis</h3>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                        Filters & Sub-Analysis
+                    </h3>
                     <div class="space-y-4">
                         <div>
                             <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 block">Channel Overlay</label>
                             <div class="flex flex-wrap gap-2">
-                                <label class="cursor-pointer flex-1"><input type="radio" name="channelMode" value="standard" class="peer sr-only" checked><div class="rounded bg-slate-100 dark:bg-slate-700 px-2 py-1.5 text-xs text-center font-medium peer-checked:bg-violet-100 peer-checked:text-violet-700 dark:peer-checked:bg-violet-900/40 dark:peer-checked:text-violet-300">Standard</div></label>
-                                <label class="cursor-pointer flex-1"><input type="radio" name="channelMode" value="luminescence" class="peer sr-only"><div class="rounded bg-slate-100 dark:bg-slate-700 px-2 py-1.5 text-xs text-center font-medium peer-checked:bg-violet-100 peer-checked:text-violet-700 dark:peer-checked:bg-violet-900/40 dark:peer-checked:text-violet-300">Luma</div></label>
-                                <label class="cursor-pointer flex-1"><input type="radio" name="channelMode" value="inverted" class="peer sr-only"><div class="rounded bg-slate-100 dark:bg-slate-700 px-2 py-1.5 text-xs text-center font-medium peer-checked:bg-violet-100 peer-checked:text-violet-700 dark:peer-checked:bg-violet-900/40 dark:peer-checked:text-violet-300">Invert</div></label>
-                                <label class="cursor-pointer flex-1"><input type="radio" name="channelMode" value="heatmap" class="peer sr-only"><div class="rounded bg-slate-100 dark:bg-slate-700 px-2 py-1.5 text-xs text-center font-medium peer-checked:bg-violet-100 peer-checked:text-violet-700 dark:peer-checked:bg-violet-900/40 dark:peer-checked:text-violet-300">Heat</div></label>
-                                <label class="cursor-pointer flex-1"><input type="radio" name="channelMode" value="threshold" class="peer sr-only"><div class="rounded bg-slate-100 dark:bg-slate-700 px-2 py-1.5 text-xs text-center font-medium peer-checked:bg-violet-100 peer-checked:text-violet-700 dark:peer-checked:bg-violet-900/40 dark:peer-checked:text-violet-300">Thresh</div></label>
+                                <label class="cursor-pointer flex-1"><input type="radio" name="channelMode" value="standard" class="peer sr-only" checked><div class="rounded bg-slate-100 dark:bg-slate-700 px-2 py-1.5 text-xs text-center font-medium peer-checked:bg-violet-100 peer-checked:text-violet-700 dark:peer-checked:bg-violet-900/40 dark:peer-checked:text-violet-300 border border-transparent peer-checked:border-violet-200 dark:peer-checked:border-violet-800 transition-colors">Standard</div></label>
+                                <label class="cursor-pointer flex-1"><input type="radio" name="channelMode" value="luminescence" class="peer sr-only"><div class="rounded bg-slate-100 dark:bg-slate-700 px-2 py-1.5 text-xs text-center font-medium peer-checked:bg-violet-100 peer-checked:text-violet-700 dark:peer-checked:bg-violet-900/40 dark:peer-checked:text-violet-300 border border-transparent peer-checked:border-violet-200 dark:peer-checked:border-violet-800 transition-colors">Luma</div></label>
+                                <label class="cursor-pointer flex-1"><input type="radio" name="channelMode" value="inverted" class="peer sr-only"><div class="rounded bg-slate-100 dark:bg-slate-700 px-2 py-1.5 text-xs text-center font-medium peer-checked:bg-violet-100 peer-checked:text-violet-700 dark:peer-checked:bg-violet-900/40 dark:peer-checked:text-violet-300 border border-transparent peer-checked:border-violet-200 dark:peer-checked:border-violet-800 transition-colors">Invert</div></label>
+                                <label class="cursor-pointer flex-1"><input type="radio" name="channelMode" value="heatmap" class="peer sr-only"><div class="rounded bg-slate-100 dark:bg-slate-700 px-2 py-1.5 text-xs text-center font-medium peer-checked:bg-violet-100 peer-checked:text-violet-700 dark:peer-checked:bg-violet-900/40 dark:peer-checked:text-violet-300 border border-transparent peer-checked:border-violet-200 dark:peer-checked:border-violet-800 transition-colors">Heat</div></label>
+                                <label class="cursor-pointer flex-1"><input type="radio" name="channelMode" value="threshold" class="peer sr-only"><div class="rounded bg-slate-100 dark:bg-slate-700 px-2 py-1.5 text-xs text-center font-medium peer-checked:bg-violet-100 peer-checked:text-violet-700 dark:peer-checked:bg-violet-900/40 dark:peer-checked:text-violet-300 border border-transparent peer-checked:border-violet-200 dark:peer-checked:border-violet-800 transition-colors">Thresh</div></label>
                             </div>
-                            <div id="thresholdContainer" class="hidden mt-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                            <div id="thresholdContainer" class="hidden mt-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 transition-all">
                                 <div class="flex justify-between mb-1"><span class="text-xs font-semibold">Threshold Limit</span><span id="thresholdVal" class="text-xs font-bold text-violet-600 dark:text-violet-400">30</span></div>
                                 <input id="thresholdSlider" type="range" min="1" max="255" value="30" class="w-full">
                             </div>
@@ -229,11 +237,11 @@
                         <div>
                             <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 block">Secondary Logic</label>
                             <div class="grid grid-cols-3 gap-2">
-                                <label class="cursor-pointer"><input type="radio" name="subAnalysisMode" value="none" class="peer sr-only" checked><div class="rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-xs text-center peer-checked:border-violet-400 peer-checked:text-violet-600 dark:peer-checked:text-violet-400 font-medium">None</div></label>
-                                <label class="cursor-pointer"><input type="radio" name="subAnalysisMode" value="q-curve" class="peer sr-only"><div class="rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-xs text-center peer-checked:border-violet-400 peer-checked:text-violet-600 dark:peer-checked:text-violet-400 font-medium">Q-Curve</div></label>
-                                <label class="cursor-pointer"><input type="radio" name="subAnalysisMode" value="iterative" class="peer sr-only"><div class="rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-xs text-center peer-checked:border-violet-400 peer-checked:text-violet-600 dark:peer-checked:text-violet-400 font-medium">Iterative</div></label>
-                                <label class="cursor-pointer"><input type="radio" name="subAnalysisMode" value="edge-analysis" class="peer sr-only"><div class="rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-xs text-center peer-checked:border-violet-400 peer-checked:text-violet-600 dark:peer-checked:text-violet-400 font-medium">Edge Det</div></label>
-                                <label class="cursor-pointer col-span-2"><input type="radio" name="subAnalysisMode" value="chroma-analysis" class="peer sr-only"><div class="rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-xs text-center peer-checked:border-violet-400 peer-checked:text-violet-600 dark:peer-checked:text-violet-400 font-medium">Chroma Mask</div></label>
+                                <label class="cursor-pointer"><input type="radio" name="subAnalysisMode" value="none" class="peer sr-only" checked><div class="rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-xs text-center peer-checked:border-violet-400 peer-checked:text-violet-600 dark:peer-checked:text-violet-400 font-medium transition-colors">None</div></label>
+                                <label class="cursor-pointer"><input type="radio" name="subAnalysisMode" value="q-curve" class="peer sr-only"><div class="rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-xs text-center peer-checked:border-violet-400 peer-checked:text-violet-600 dark:peer-checked:text-violet-400 font-medium transition-colors">Q-Curve</div></label>
+                                <label class="cursor-pointer"><input type="radio" name="subAnalysisMode" value="iterative" class="peer sr-only"><div class="rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-xs text-center peer-checked:border-violet-400 peer-checked:text-violet-600 dark:peer-checked:text-violet-400 font-medium transition-colors">Iterative</div></label>
+                                <label class="cursor-pointer"><input type="radio" name="subAnalysisMode" value="edge-analysis" class="peer sr-only"><div class="rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-xs text-center peer-checked:border-violet-400 peer-checked:text-violet-600 dark:peer-checked:text-violet-400 font-medium transition-colors">Edge Det</div></label>
+                                <label class="cursor-pointer col-span-2"><input type="radio" name="subAnalysisMode" value="chroma-analysis" class="peer sr-only"><div class="rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-xs text-center peer-checked:border-violet-400 peer-checked:text-violet-600 dark:peer-checked:text-violet-400 font-medium transition-colors">Chroma Mask</div></label>
                             </div>
                         </div>
                     </div>
@@ -243,74 +251,77 @@
 
                 <!-- Section 3: Output Settings & Batch -->
                 <div>
-                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">Output Preferences</h3>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Output Preferences
+                    </h3>
                     
                     <div class="mb-4">
                         <label id="stitchLabel" class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 block">Stitch Original & Result</label>
                         <div class="flex gap-2">
                             <input type="radio" id="stitchNone" name="stitchDirection" value="none" class="peer sr-only" checked>
-                            <label for="stitchNone" class="w-10 h-10 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center cursor-pointer peer-checked:bg-violet-500 peer-checked:text-white transition-colors text-sm font-bold">X</label>
+                            <label for="stitchNone" class="w-10 h-10 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center cursor-pointer peer-checked:bg-violet-500 peer-checked:text-white transition-colors text-sm font-bold border border-transparent peer-checked:border-violet-600">X</label>
                             
                             <input type="radio" id="stitchLeft" name="stitchDirection" value="left" class="peer sr-only">
-                            <label for="stitchLeft" class="w-10 h-10 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center cursor-pointer peer-checked:bg-violet-500 peer-checked:text-white transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></label>
+                            <label for="stitchLeft" class="w-10 h-10 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center cursor-pointer peer-checked:bg-violet-500 peer-checked:text-white transition-colors border border-transparent peer-checked:border-violet-600"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></label>
                             
                             <input type="radio" id="stitchTop" name="stitchDirection" value="top" class="peer sr-only">
-                            <label for="stitchTop" class="w-10 h-10 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center cursor-pointer peer-checked:bg-violet-500 peer-checked:text-white transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg></label>
+                            <label for="stitchTop" class="w-10 h-10 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center cursor-pointer peer-checked:bg-violet-500 peer-checked:text-white transition-colors border border-transparent peer-checked:border-violet-600"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg></label>
                             
                             <input type="radio" id="stitchBottom" name="stitchDirection" value="bottom" class="peer sr-only">
-                            <label for="stitchBottom" class="w-10 h-10 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center cursor-pointer peer-checked:bg-violet-500 peer-checked:text-white transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></label>
+                            <label for="stitchBottom" class="w-10 h-10 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center cursor-pointer peer-checked:bg-violet-500 peer-checked:text-white transition-colors border border-transparent peer-checked:border-violet-600"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></label>
                             
                             <input type="radio" id="stitchRight" name="stitchDirection" value="right" class="peer sr-only">
-                            <label for="stitchRight" class="w-10 h-10 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center cursor-pointer peer-checked:bg-violet-500 peer-checked:text-white transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></label>
+                            <label for="stitchRight" class="w-10 h-10 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center cursor-pointer peer-checked:bg-violet-500 peer-checked:text-white transition-colors border border-transparent peer-checked:border-violet-600"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></label>
                         </div>
                     </div>
 
                     <label class="flex items-center cursor-pointer mb-4">
-                        <input id="detailsCheck" type="checkbox" class="w-4 h-4 text-violet-600 rounded border-slate-300 dark:border-slate-600 focus:ring-violet-500 dark:bg-slate-700">
+                        <input id="detailsCheck" type="checkbox" class="w-4 h-4 text-violet-600 rounded border-slate-300 dark:border-slate-600 focus:ring-violet-500 dark:bg-slate-700 transition-colors">
                         <span class="ml-2 text-sm font-medium text-slate-700 dark:text-slate-300">Burn config details onto image</span>
                     </label>
 
                     <!-- Batch Specific Advanced Options -->
-                    <div id="sidebarBatchTools" class="hidden space-y-4 pt-2 border-t border-slate-200 dark:border-slate-700">
+                    <div id="sidebarBatchTools" class="hidden space-y-4 pt-4 border-t border-slate-200 dark:border-slate-700">
                         <div class="flex items-center justify-between">
                             <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Max Render Width (px)</label>
-                            <input type="number" id="maxSizeInput" value="1000" class="w-20 bg-slate-100 dark:bg-slate-700 text-sm px-2 py-1 rounded border border-slate-300 dark:border-slate-600 text-center">
+                            <input type="number" id="maxSizeInput" value="1000" class="w-20 bg-slate-100 dark:bg-slate-700 text-sm px-2 py-1 rounded border border-slate-300 dark:border-slate-600 text-center focus:ring focus:ring-violet-500/30 outline-none">
                         </div>
                         
                         <!-- Range Tool -->
-                        <div id="batchRangeContainer" class="bg-violet-50 dark:bg-violet-900/20 rounded-lg p-3 border border-violet-100 dark:border-violet-800">
+                        <div id="batchRangeContainer" class="bg-violet-50 dark:bg-violet-900/20 rounded-lg p-3 border border-violet-100 dark:border-violet-800 transition-opacity">
                             <p class="text-xs font-semibold text-violet-700 dark:text-violet-300 mb-2">Automate Range (IDA)</p>
                             <div class="flex items-center gap-2 mb-2">
-                                <span class="text-xs">Loop 'x' from</span>
-                                <input type="number" id="rangeStartInput" value="5" class="w-12 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded px-1 text-center text-xs py-1">
-                                <span class="text-xs">to</span>
-                                <input type="number" id="rangeEndInput" value="10" class="w-12 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded px-1 text-center text-xs py-1">
+                                <span class="text-xs text-slate-600 dark:text-slate-400">Loop 'x' from</span>
+                                <input type="number" id="rangeStartInput" value="5" class="w-12 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded px-1 text-center text-xs py-1 focus:ring focus:ring-violet-500/30 outline-none">
+                                <span class="text-xs text-slate-600 dark:text-slate-400">to</span>
+                                <input type="number" id="rangeEndInput" value="10" class="w-12 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded px-1 text-center text-xs py-1 focus:ring focus:ring-violet-500/30 outline-none">
                             </div>
                             <button id="batchProcessRangeBtn" class="w-full bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold py-1.5 rounded transition-colors shadow-sm">Run Range Loop</button>
                         </div>
 
                         <!-- Advanced Output Format -->
                         <details class="group">
-                            <summary class="text-sm font-semibold cursor-pointer flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                            <summary class="text-sm font-semibold cursor-pointer flex items-center gap-2 text-slate-600 dark:text-slate-300 select-none">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-open:rotate-90 transition-transform"><path d="M9 18l6-6-6-6"/></svg>
                                 Advanced Export Settings
                             </summary>
                             <div class="pt-3 space-y-3 pl-6">
                                 <div>
-                                    <label class="text-xs block mb-1">Naming Pattern</label>
-                                    <input id="namingPatternInput" type="text" value="{fname}-{mode}-{channel}" class="w-full text-xs bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded px-2 py-1.5">
+                                    <label class="text-xs block mb-1 text-slate-500 dark:text-slate-400 font-medium">Naming Pattern</label>
+                                    <input id="namingPatternInput" type="text" value="{fname}-{mode}-{channel}" class="w-full text-xs bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded px-2 py-1.5 focus:ring focus:ring-violet-500/30 outline-none">
                                 </div>
                                 <div>
-                                    <label class="text-xs block mb-1 flex justify-between"><span>Output Quality (JPG)</span><span id="jpgQualityVal" class="font-bold">80</span></label>
+                                    <label class="text-xs block mb-1 flex justify-between text-slate-500 dark:text-slate-400 font-medium"><span>Output Quality (JPG)</span><span id="jpgQualityVal" class="font-bold text-violet-600 dark:text-violet-400">80</span></label>
                                     <input id="jpgQualitySlider" type="range" min="1" max="100" value="80" class="w-full h-1">
                                 </div>
-                                <div class="flex gap-2 text-xs">
-                                    <label class="flex items-center gap-1"><input type="radio" name="fileFormat" value="jpg" checked> JPG</label>
-                                    <label class="flex items-center gap-1"><input type="radio" name="fileFormat" value="png"> PNG</label>
+                                <div class="flex gap-4 text-xs font-medium text-slate-600 dark:text-slate-300">
+                                    <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="fileFormat" value="jpg" checked class="text-violet-600 focus:ring-violet-500"> JPG</label>
+                                    <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="fileFormat" value="png" class="text-violet-600 focus:ring-violet-500"> PNG</label>
                                 </div>
-                                <div class="flex flex-col gap-1 text-xs">
-                                    <label class="flex items-center gap-1"><input type="radio" name="downloadType" value="individual" checked> Individual Pop-ups</label>
-                                    <label class="flex items-center gap-1"><input type="radio" name="downloadType" value="zip"> Single ZIP Archive</label>
+                                <div class="flex flex-col gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+                                    <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="downloadType" value="individual" checked class="text-violet-600 focus:ring-violet-500"> Individual Pop-ups</label>
+                                    <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="downloadType" value="zip" class="text-violet-600 focus:ring-violet-500"> Single ZIP Archive</label>
                                 </div>
                             </div>
                         </details>
@@ -320,15 +331,18 @@
                 <hr class="border-slate-200 dark:border-slate-700">
 
                 <!-- Section 4: Profiles -->
-                <details class="group pb-4">
-                    <summary class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 cursor-pointer flex items-center justify-between">
-                        Configuration Profiles
+                <details class="group">
+                    <summary class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 cursor-pointer flex items-center justify-between select-none">
+                        <span class="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                            Configuration Profiles
+                        </span>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-open:rotate-180 transition-transform"><path d="M6 9l6 6 6-6"/></svg>
                     </summary>
                     <div class="mt-3 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
-                        <div id="configList" class="h-24 overflow-y-auto bg-white dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 mb-2 text-sm p-1 space-y-1"></div>
+                        <div id="configList" class="h-24 overflow-y-auto bg-white dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 mb-2 text-sm p-1 space-y-1 custom-scrollbar"></div>
                         <div class="flex gap-2 mb-2">
-                            <input type="text" id="configNameInput" placeholder="New profile name..." class="flex-1 text-sm bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded px-2 py-1">
+                            <input type="text" id="configNameInput" placeholder="New profile name..." class="flex-1 text-sm bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded px-2 py-1 outline-none focus:ring focus:ring-violet-500/30">
                             <button id="saveConfigBtn" class="bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300 hover:bg-violet-200 dark:hover:bg-violet-800 px-3 py-1 rounded text-sm font-semibold transition-colors">Save</button>
                         </div>
                         <div class="grid grid-cols-2 gap-2">
@@ -342,13 +356,14 @@
                         </div>
                     </div>
                 </details>
+
             </div>
 
-            <!-- Fixed Action Bar (Bottom of Sidebar) -->
-            <div class="absolute bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20">
-                <button id="masterProcessBtn" class="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-transform transform active:scale-[0.98] flex justify-center items-center gap-2 mb-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                    Process Media
+            <!-- Fixed Action Bar (Sticky at bottom on mobile, relative at bottom on desktop) -->
+            <div class="sticky bottom-0 lg:relative shrink-0 border-t border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-800/90 backdrop-blur p-4 z-30 lg:shadow-none shadow-[0_-5px_15px_-3px_rgba(0,0,0,0.1)]">
+                <button id="masterProcessBtn" class="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-transform transform active:scale-[0.98] flex justify-center items-center gap-2 mb-2 disabled:opacity-75 disabled:cursor-wait">
+                    <svg id="processIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    <span id="processText">Process Media</span>
                 </button>
                 <div class="flex gap-2">
                     <button id="masterIdaBtn" class="flex-1 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold py-2 px-2 rounded-lg text-xs transition-colors">Quick IDA</button>
@@ -359,22 +374,25 @@
     </div>
 
     <!-- Info Modal -->
-    <div id="infoModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-md w-full p-6 relative">
-            <button id="closeInfoBtn" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+    <div id="infoModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 transition-opacity">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
+            <button id="closeInfoBtn" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
-            <h2 class="text-xl font-bold mb-4">Toolkit Information</h2>
-            <div class="p-4 bg-violet-50 dark:bg-violet-900/20 border border-violet-100 dark:border-violet-800 rounded-lg text-sm text-slate-700 dark:text-slate-300">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                <svg class="text-violet-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                Toolkit Information
+            </h2>
+            <div class="p-4 bg-violet-50 dark:bg-violet-900/20 border border-violet-100 dark:border-violet-800 rounded-xl text-sm text-slate-700 dark:text-slate-300">
                 <p class="font-semibold mb-2">Based on research by:</p>
-                <p class="mb-3">Lehti, Andrew (2026). Image Degradation Analysis (IDA): Forensic Applications for Light Physics, White Paper. figshare. Journal contribution.</p>
-                <a href="https://doi.org/10.6084/m9.figshare.31323694" target="_blank" class="text-violet-600 dark:text-violet-400 hover:underline break-all block">https://doi.org/10.6084/m9.figshare.31323694</a>
+                <p class="mb-3 leading-relaxed">Lehti, Andrew (2026). Image Degradation Analysis (IDA): Forensic Applications for Light Physics, White Paper. figshare. Journal contribution.</p>
+                <a href="https://doi.org/10.6084/m9.figshare.31323694" target="_blank" class="text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 font-medium hover:underline break-all block transition-colors">https://doi.org/10.6084/m9.figshare.31323694</a>
             </div>
         </div>
     </div>
 
     <!-- Toast Notification Container -->
-    <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+    <div id="toastContainer" class="fixed bottom-6 left-1/2 -translate-x-1/2 lg:translate-x-0 lg:left-auto lg:right-6 z-50 flex flex-col gap-2 pointer-events-none w-max max-w-[90vw]"></div>
 
 <script>
     // === CONFIG ===
@@ -414,6 +432,8 @@
     const masterProcessBtn = document.getElementById('masterProcessBtn');
     const masterIdaBtn = document.getElementById('masterIdaBtn');
     const masterGridBtn = document.getElementById('masterGridBtn');
+    const processIcon = document.getElementById('processIcon');
+    const processText = document.getElementById('processText');
     
     // Save Action Bar
     const saveActionContainer = document.getElementById('saveActionContainer');
@@ -476,9 +496,15 @@
     // Toast Notification System
     function showToast(message, type = 'info') {
         const toast = document.createElement('div');
-        const bgColors = { info: 'bg-slate-800 text-white', success: 'bg-emerald-500 text-white', error: 'bg-red-500 text-white', warning: 'bg-amber-500 text-white' };
-        toast.className = `${bgColors[type]} px-4 py-3 rounded-lg shadow-xl text-sm font-medium transform transition-all duration-300 translate-y-10 opacity-0`;
-        toast.textContent = message;
+        const bgColors = { info: 'bg-slate-800 dark:bg-slate-700 text-white', success: 'bg-emerald-600 text-white', error: 'bg-red-600 text-white', warning: 'bg-amber-500 text-white' };
+        toast.className = `${bgColors[type]} px-4 py-3 rounded-lg shadow-xl text-sm font-medium transform transition-all duration-300 translate-y-10 opacity-0 flex items-center gap-2`;
+        
+        let iconHtml = '';
+        if(type === 'success') iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
+        if(type === 'error') iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
+        if(type === 'warning' || type === 'info') iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`;
+
+        toast.innerHTML = `${iconHtml} <span>${message}</span>`;
         document.getElementById('toastContainer').appendChild(toast);
         
         requestAnimationFrame(() => toast.classList.remove('translate-y-10', 'opacity-0'));
@@ -489,8 +515,7 @@
     }
     
     // === MULTITHREADED WORKER POOL ENGINE ===
-    // This inline worker code replaces the blocking JavaScript loops. It utilizes OffscreenCanvas
-    // to bypass the CPU-to-GPU memory transfer bottlenecks and calculates pure binary math natively.
+    // This inline worker code utilizes OffscreenCanvas to bypass the CPU-to-GPU memory transfer bottlenecks.
     const workerScript = `
         function processAnalysisModes(oData, cData, dArr, params) {
             const { topLevelAnalysisMode, channelMode, m, x, threshold } = params;
@@ -511,7 +536,7 @@
             const scale = sFactor / maxDiff;
             const thresh = parseInt(threshold, 10);
 
-            // Pass 2: Uint8ClampedArray handles clamping automatically (Huge JS speedup)
+            // Pass 2: Uint8ClampedArray handles clamping automatically
             if (channelMode === 'standard') {
                 for (let i = 0; i < len; i += 4) {
                     dArr[i]   = Math.abs(oData[i] - cData[i]) * scale;
@@ -569,7 +594,6 @@
         }
 
         async function getAnalysisCanvas(origBitmap, params) {
-            // Speed optimization: WebWorkers can use convertToBlob!
             const quality = params.topLevelAnalysisMode === 'ela' ? 0.95 : parseInt(params.x) / 100;
             const tempCanvas = new OffscreenCanvas(origBitmap.width, origBitmap.height);
             tempCanvas.getContext('2d').drawImage(origBitmap, 0, 0);
@@ -616,7 +640,6 @@
                 let pCanvas;
                 
                 if (isGrid) {
-                    // Full Grid Logic
                     const resultCanvases = [];
                     for (let x = 1; x <= 10; x++) {
                         const gridParams = { ...params, x: x, stitchDirection: 'none', subAnalysisMode: 'none' };
@@ -635,7 +658,6 @@
                     const tempOrig = new OffscreenCanvas(bitmap.width, bitmap.height);
                     tempOrig.getContext('2d').drawImage(bitmap, 0, 0);
                     
-                    // Simple grid stitching for worker (scales original to match height/width)
                     const aspectRatio = bitmap.width / bitmap.height; 
                     const resizedOrig = new OffscreenCanvas(gridCanvas.height * aspectRatio, gridCanvas.height);
                     if (params.stitchDirection === 'top' || params.stitchDirection === 'bottom') {
@@ -653,7 +675,6 @@
                     pCanvas = stitchImage(tempOrig, diffCanvas, params.stitchDirection);
                 }
 
-                // Transfer back to main thread extremely fast
                 const resultBitmap = pCanvas.transferToImageBitmap();
                 self.postMessage({ jobId, result: resultBitmap }, [resultBitmap]);
 
@@ -702,9 +723,9 @@
         processNext() {
             if (this.queue.length === 0 || this.activeWorkers >= this.workers.length) return;
             const job = this.queue.shift();
-            const worker = this.workers[this.activeWorkers]; // distribute load
+            const worker = this.workers[this.activeWorkers];
             this.activeWorkers++;
-            worker.postMessage(job, [job.bitmap]); // Transfer ownership to worker for speed
+            worker.postMessage(job, [job.bitmap]);
         }
     }
 
@@ -809,7 +830,7 @@
         tabs.forEach(tab => {
             const isMatch = tab.id.toLowerCase().includes(tabName);
             tab.className = isMatch 
-                ? 'tab-btn px-3 py-1.5 text-sm font-medium rounded-md bg-white dark:bg-slate-600 shadow-sm text-violet-600 dark:text-violet-300 transition-all flex-1 text-center'
+                ? 'tab-btn active px-3 py-1.5 text-sm font-medium rounded-md bg-white dark:bg-slate-600 shadow-sm text-violet-600 dark:text-violet-300 transition-all flex-1 text-center'
                 : 'tab-btn px-3 py-1.5 text-sm font-medium rounded-md text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-all flex-1 text-center';
         });
 
@@ -902,6 +923,15 @@
             btn.classList.toggle('opacity-50', isProcessing); 
             btn.classList.toggle('cursor-not-allowed', isProcessing); 
         }); 
+        
+        if (isProcessing) {
+            processIcon.innerHTML = `<path d="M21 12a9 9 0 1 1-6.219-8.56" stroke-dasharray="20 10"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/></path>`;
+            processText.textContent = "Processing...";
+        } else {
+            processIcon.innerHTML = `<polygon points="5 3 19 12 5 21 5 3"/>`;
+            processText.textContent = "Process Media";
+        }
+
         if (!isProcessing) updateControlsBasedOnMode(); 
         progressBarContainer.classList.toggle('hidden', !isProcessing); 
         if (!isProcessing) progressBar.style.width = '0%'; 
@@ -1013,10 +1043,6 @@
         let vh = Math.floor(hiddenVideo.videoHeight * scaleFactor);
         vw -= vw % 2; vh -= vh % 2; // maintain even dims for encoder
         
-        const srcCanvas = document.createElement('canvas');
-        srcCanvas.width = vw; srcCanvas.height = vh;
-        const srcCtx = srcCanvas.getContext('2d', { willReadFrequently: true });
-        
         hiddenVideo.currentTime = 0;
 
         for (let currentTime = 0; currentTime <= duration + 0.01; currentTime += interval) {
@@ -1025,17 +1051,17 @@
             await new Promise((resolve) => {
                 const onSeeked = () => { hiddenVideo.removeEventListener('seeked', onSeeked); clearTimeout(timeoutId); resolve(); };
                 hiddenVideo.addEventListener('seeked', onSeeked);
-                const timeoutId = setTimeout(() => { hiddenVideo.removeEventListener('seeked', onSeeked); resolve(); }, 300); // 300ms max timeout to prevent hang
+                const timeoutId = setTimeout(() => { hiddenVideo.removeEventListener('seeked', onSeeked); resolve(); }, 150);
             });
 
-            srcCtx.drawImage(hiddenVideo, 0, 0, vw, vh);
-            const bitmap = await createImageBitmap(srcCanvas);
+            // Dramatically faster extraction: bypasses 2D Canvas completely
+            const bitmap = await createImageBitmap(hiddenVideo, { resizeWidth: vw, resizeHeight: vh });
             extractedFrames.push({ bitmap, timestamp: frameIndex * (1_000_000 / fps) });
             
             frameIndex++;
             progressBar.style.width = `${(frameIndex / totalFramesEstimate) * 20}%`; // Extraction uses first 20% of progress bar
             
-            if (hiddenVideo.currentTime >= duration - 0.05) break; // Break before exact end to prevent infinite freeze loop
+            if (hiddenVideo.currentTime >= duration - 0.05) break; 
         }
 
         if (extractedFrames.length === 0) {
@@ -1046,7 +1072,6 @@
         setProcessingState(true, `Initializing encoder & threading pool...`);
         let encoder = null; let muxer = null;
 
-        // Determine output dimensions via worker pool for first frame
         const firstCanvasBitmap = await workerPool.execute(extractedFrames[0].bitmap, params, isGrid);
         let outW = firstCanvasBitmap.width; let outH = firstCanvasBitmap.height;
         outW -= outW % 2; outH -= outH % 2;
@@ -1088,16 +1113,13 @@
         encoder = new VideoEncoder({ output: (chunk, meta) => muxer.addVideoChunk(chunk, meta), error: e => console.error(e) });
         encoder.configure(config);
 
-        // Encode first frame
         drawResult(firstCanvasBitmap);
-        const encFirstCanvas = document.createElement('canvas'); encFirstCanvas.width = outW; encFirstCanvas.height = outH; encFirstCanvas.getContext('2d').drawImage(firstCanvasBitmap, 0, 0);
-        const firstVFrame = new VideoFrame(encFirstCanvas, { timestamp: extractedFrames[0].timestamp });
+        // Feed GPU ImageBitmap directly into VideoFrame (avoids Canvas re-drawing context)
+        const firstVFrame = new VideoFrame(firstCanvasBitmap, { timestamp: extractedFrames[0].timestamp });
         encoder.encode(firstVFrame); firstVFrame.close(); firstCanvasBitmap.close();
 
-        // Process rest in parallel via the Worker Pool
         setProcessingState(true, `Parallel Processing ${extractedFrames.length} frames...`);
 
-        // Batch frames into micro-queues to prevent RAM exhaustion and preserve order
         const batchSize = workerPool.workers.length * 2; 
         
         for (let i = 1; i < extractedFrames.length; i += batchSize) {
@@ -1108,17 +1130,15 @@
                 return { bitmap: resultBitmap, timestamp: frameData.timestamp };
             });
 
-            // Await processing in background workers
             const results = await Promise.all(batchPromises);
 
             for (const res of results) {
                 drawResult(res.bitmap);
                 
-                const frameCanvas = document.createElement('canvas'); frameCanvas.width = outW; frameCanvas.height = outH;
-                frameCanvas.getContext('2d').drawImage(res.bitmap, 0, 0);
-                
-                const vFrame = new VideoFrame(frameCanvas, { timestamp: res.timestamp });
+                // Native fast encode
+                const vFrame = new VideoFrame(res.bitmap, { timestamp: res.timestamp });
                 encoder.encode(vFrame);
+                
                 vFrame.close();
                 res.bitmap.close(); 
             }
@@ -1147,7 +1167,6 @@
     function clearCanvas() { rCtx.clearRect(0, 0, resultCanvas.width, resultCanvas.height); resultCanvas.width = 1; resultCanvas.height = 1; canvasPlaceholder.style.opacity = 1; resultCanvas.style.opacity = 0; }
     function drawResult(canvasElem) { if (!canvasElem) return; canvasPlaceholder.style.opacity = 0; resultCanvas.style.opacity = 1; resultCanvas.width = canvasElem.width; resultCanvas.height = canvasElem.height; rCtx.drawImage(canvasElem, 0, 0); }
     
-    // Resize images before sending to workers (saves memory)
     function resizeImage(img, maxSize) { const { width, height } = img; if (Math.max(width, height) <= maxSize) return img; let newWidth, newHeight; if (width > height) { newWidth = maxSize; newHeight = (height / width) * maxSize; } else { newHeight = maxSize; newWidth = (width / height) * maxSize; } const canvas = document.createElement('canvas'); canvas.width = newWidth; canvas.height = newHeight; canvas.getContext('2d').drawImage(img, 0, 0, newWidth, newHeight); return canvas; }
     
     async function processImageFile(file, isGrid = false) { 
@@ -1158,7 +1177,6 @@
         const originalBitmap = await createImageBitmap(file); 
         const params = collectCurrentSettings(); 
         
-        // Execute through Web Worker Pool for max speed
         const finalBitmap = await workerPool.execute(originalBitmap, params, isGrid);
         
         drawResult(finalBitmap); 
@@ -1178,7 +1196,6 @@
         const maxSize = parseInt(maxSizeInput.value) || 1000; 
         const params = collectCurrentSettings();
 
-        // Run entire batch parallel through Worker Pool
         const batchPromises = loadedBatchFiles.map(async (file, i) => {
             const tempImg = await createImageBitmap(file);
             const resizedCanvas = resizeImage(tempImg, maxSize);
@@ -1195,7 +1212,7 @@
         });
 
         batchCanvases = await Promise.all(batchPromises);
-        drawResult(batchCanvases[batchCanvases.length - 1].canvas); // draw last one
+        drawResult(batchCanvases[batchCanvases.length - 1].canvas); 
         
         setProcessingState(false); 
         showToast(`Batch processing complete (${batchCanvases.length} files).`, 'success'); 
@@ -1224,7 +1241,6 @@
             
             const rangePromises = xValues.map(async (x) => {
                 const params = { ...collectCurrentSettings(), x: x, stitchDirection: 'none' }; 
-                // Clone bitmap for worker
                 const bmp = await createImageBitmap(resizedBitmap);
                 const finalBitmap = await workerPool.execute(bmp, params, false);
                 jobsDone++; 
@@ -1266,7 +1282,6 @@
         }; 
         const getOutputFile = (item) => { 
             return new Promise(resolve => { 
-                // Draw ImageBitmap to a real canvas so we can use toBlob
                 const canvas = document.createElement('canvas'); canvas.width = item.canvas.width; canvas.height = item.canvas.height;
                 canvas.getContext('2d').drawImage(item.canvas, 0, 0);
                 if (downloadType === 'zip') { canvas.toBlob(resolve, mimeType, quality); } else { resolve(canvas.toDataURL(mimeType, quality)); } 
